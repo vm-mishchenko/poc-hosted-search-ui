@@ -1,5 +1,6 @@
-export const DATABASE_NAME = 'sample_mflix';
-export const COLLECTION_NAME = 'movies';
+// search index details
+export const DATABASE_NAME = 'sample_airbnb';
+export const COLLECTION_NAME = 'listingsAndReviews';
 export const INDEX_NAME = 'default';
 
 // access database

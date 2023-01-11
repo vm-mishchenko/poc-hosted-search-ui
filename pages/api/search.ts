@@ -1,7 +1,10 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { COLLECTION_NAME, DATABASE_NAME, DB_CONNECTION, DB_PASSWORD, DB_USER, INDEX_NAME } from '../../mms-config';
+import {
+  COLLECTION_NAME, DATABASE_NAME, DB_CONNECTION, DB_PASSWORD, DB_USER, INDEX_NAME,
+} from '../../mms-config';
 import { isString } from '../../utils';
+import { SEARCH_PIPELINE } from '../../mms-explicit-user-configs';
 
 const MongoClient = require("mongodb").MongoClient;
 const MONGODB_CONNECTION_PATH = `mongodb+srv://${DB_USER}:${DB_PASSWORD}@${DB_CONNECTION}`;
@@ -23,26 +26,9 @@ export default async function handler(
 }
 
 const search  = (client: any, query: string) => {
-  const searchQuery = {
-    index: INDEX_NAME,
-    text: {
-      query,
-      path: "title"
-    },
-  };
-
   const collection = client.db(DATABASE_NAME).collection(COLLECTION_NAME);
-  const pipeline = [
-    {
-      $search: searchQuery,
-    },
-    {
-      $limit: 10
-    },
-  ];
-
   return collection
-      .aggregate(pipeline)
+      .aggregate(SEARCH_PIPELINE(query))
       .toArray()
       .then((results: Array<any>) => {
         return results;

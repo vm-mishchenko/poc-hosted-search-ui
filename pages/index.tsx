@@ -1,5 +1,6 @@
 import Head from 'next/head'
 import { useEffect, useState } from 'react';
+import { DOC_FIELDS_TO_RENDER, DOC_ID_FIELD_NAME, DOC_TITLE_FIELD_NAME, DOC_URL } from '../mms-explicit-user-configs';
 
 function abortableFetch(url: string) {
   const controller = new AbortController();
@@ -12,6 +13,17 @@ function abortableFetch(url: string) {
 }
 
 let currentFetch: any;
+
+const getSearchResultUrl = (searchResult: any) => {
+  return DOC_URL.replace('$DOC_ID_FIELD_NAME', searchResult[DOC_ID_FIELD_NAME]);
+}
+
+const getSearchResultObject = (searchResult: any) => {
+  return DOC_FIELDS_TO_RENDER.reduce((result, field) => {
+    result[field] = searchResult[field];
+    return result;
+  }, {} as any);
+}
 
 const search = async (query: string) => {
   if (!!currentFetch) {
@@ -67,10 +79,11 @@ export default function Home() {
           {searchResults.map((searchResult: any) => {
             return <li key={searchResult.id}>
               <p>
-                {
-                  searchResult.title
-                }
+                <a href={getSearchResultUrl(searchResult)} target="_blank" rel="noreferrer">{searchResult[DOC_TITLE_FIELD_NAME]}</a>
               </p>
+              <pre>
+                  {JSON.stringify(getSearchResultObject(searchResult), null, 2)}
+              </pre>
             </li>
           })}
         </ul>
