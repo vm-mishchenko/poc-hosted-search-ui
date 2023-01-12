@@ -1,8 +1,8 @@
-import { INDEX_NAME } from './mms-config';
-
 /**
  * Configuration User should specify in Atlas.
  */
+import { INDEX_NAME } from './mms-config';
+
 export const SEARCH_PIPELINE = (query: string) => {
   return [
     {
