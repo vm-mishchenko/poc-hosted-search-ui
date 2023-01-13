@@ -14,7 +14,7 @@ export interface DesignDefinition {
     collectionName: string;
   };
 
-  pipeline: object;
+  pipeline: Record<string, any>[];
 
   ui: UIDesignDefinition;
 }
@@ -80,7 +80,7 @@ export const getDefaultDesignDefinition = (): DesignDefinition => {
   };
 };
 
-export const isDesignDefinitionValid = (designDefinition: DesignDefinition): string | null => {
+export const validateDesignDefinition = (designDefinition: DesignDefinition): string | null => {
   if (!designDefinition.searchIndex.name) {
     return 'Specify Search Index name';
   }
@@ -91,6 +91,34 @@ export const isDesignDefinitionValid = (designDefinition: DesignDefinition): str
 
   if (!designDefinition.searchIndex.name) {
     return 'Specify Collection name';
+  }
+
+  if (!validatePipeline(designDefinition)) {
+    return validatePipeline(designDefinition);
+  }
+
+  return null;
+};
+
+
+const validatePipeline = (designDefinition: DesignDefinition): string | null => {
+  const pipeline = designDefinition.pipeline;
+
+  if (!pipeline) {
+    return 'Pipeline cannot be empty';
+  }
+
+  if (!Array.isArray(pipeline)) {
+    return 'Pipeline should be list of stages';
+  }
+
+  if (pipeline.length) {
+    return 'Pipeline should have at least one "$search" stage';
+  }
+
+  const searchStage = pipeline[0];
+  if (!Object.keys(searchStage).includes("$search")) {
+    return 'First stage in pipeline should have only one "$search" key';
   }
 
   return null;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   DesignDefinition,
-  isDesignDefinitionValid,
+  validateDesignDefinition,
 } from '../../designDefinition/types/designDefinition';
 import styles from './Design.module.css';
 
@@ -20,7 +20,7 @@ export const Design = ({ designDefinition, onChange }: DesignProps) => {
     setError('');
     try {
       const newDesignDefinition = JSON.parse(newDesignDefinitionAsString);
-      const error = isDesignDefinitionValid(newDesignDefinition);
+      const error = validateDesignDefinition(newDesignDefinition);
 
       if (error) {
         setError(error);

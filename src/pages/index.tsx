@@ -2,14 +2,12 @@ import React, { useState } from 'react';
 import Head from 'next/head';
 import { Runtime } from '../containers/Runtime/Runtime';
 import styles from '../styles/Home.module.css';
-import {
-  DesignDefinition,
-  getDefaultDesignDefinition,
-} from '../designDefinition/types/designDefinition';
+import { DesignDefinition } from '../designDefinition/types/designDefinition';
 import { Design } from '../containers/Design/Design';
+import { facetsDesignDefinition } from '../designDefinition/examples/facets-design-definition';
 
 export default function Home () {
-  const [designDefinition, setDesignDefinition] = useState<DesignDefinition>(getDefaultDesignDefinition);
+  const [designDefinition, setDesignDefinition] = useState<DesignDefinition>(facetsDesignDefinition);
   return <>
     <Head>
       <title>Hosted Search</title>

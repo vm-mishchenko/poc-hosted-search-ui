@@ -1,4 +1,5 @@
 import { DesignDefinition } from '../../../designDefinition/types/designDefinition';
+import { SearchResponse } from '../../../pages/api/search';
 
 let currentFetch: any;
 
@@ -12,7 +13,7 @@ const abortableFetch = (url: string) => {
   };
 };
 
-export const search = async (searchQuery: string, designDefinition: DesignDefinition) => {
+export const search = async (searchQuery: string, designDefinition: DesignDefinition): Promise<SearchResponse> => {
   // abort previous in-flight request
   if (!!currentFetch) {
     currentFetch.abort();
@@ -32,5 +33,10 @@ export const search = async (searchQuery: string, designDefinition: DesignDefini
   const response = await currentFetch.ready;
   currentFetch = null;
   const data = await response.json();
-  return data.results;
+
+  if (response.status >= 400 && response.status < 600) {
+    return Promise.reject(data);
+  }
+
+  return data;
 };
