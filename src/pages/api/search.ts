@@ -3,19 +3,12 @@ import type {
   NextApiRequest,
   NextApiResponse,
 } from 'next';
-import {
-  DB_CONNECTION,
-  DB_PASSWORD,
-  DB_USER,
-} from '../../mms-config';
 import { isString } from '../../utils';
 import {
   DesignDefinition,
   SEARCH_QUERY_VARIABLE,
 } from '../../designDefinition/types/designDefinition';
-
-const MongoClient = require("mongodb").MongoClient;
-const MONGODB_CONNECTION_PATH = `mongodb+srv://${DB_USER}:${DB_PASSWORD}@${DB_CONNECTION}`;
+import { getMongoClient } from '../../database/client';
 
 /**
  * 1. find Design Definition
@@ -27,8 +20,7 @@ export default async function handler (
     req: NextApiRequest,
     res: NextApiResponse,
 ) {
-  // todo-vm: fix connection limit;
-  const mongoDBClient = await MongoClient.connect(MONGODB_CONNECTION_PATH);
+  const mongoDBClient = await getMongoClient();
   const searchQuery = isString(req.query.searchQuery) ? req.query.searchQuery : '';
   const designDefinition: DesignDefinition = isString(req.query.designDefinition) ? JSON.parse(req.query.designDefinition) : '';
 
