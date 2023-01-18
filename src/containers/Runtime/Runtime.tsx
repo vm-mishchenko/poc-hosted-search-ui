@@ -5,7 +5,10 @@ import React, {
 import { DesignDefinition } from '../../designDefinition/types/designDefinition';
 import { search } from './services/search';
 import { SearchResult } from './components/SearchResult/SearchResult';
-import { SearchErrorResponse } from '../../pages/api/search';
+import {
+  Meta,
+  SearchErrorResponse,
+} from '../../pages/api/search';
 
 export interface RuntimeProps {
   designDefinition: DesignDefinition;
@@ -14,7 +17,7 @@ export interface RuntimeProps {
 export const Runtime = ({ designDefinition }: RuntimeProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Array<Record<string, any>>>([]);
-  const [meta, setMeta] = useState<Array<any>>([]);
+  const [meta, setMeta] = useState<Meta>({});
   const [loading, setLoading] = useState(false);
   const [errorResponseMessage, setErrorResponseMessage] = useState('');
 
@@ -47,13 +50,21 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
           Error: {errorResponseMessage}
         </p>}
 
-        <ul>
+        <h3>Meta</h3>
+        <pre>
+          {JSON.stringify(meta, null, 2)}
+        </pre>
+
+        <h3>Search results</h3>
+
+        {!searchResults.length ? 'No results' : <ul>
           {searchResults.map((searchResult: any) => {
             return <li key={searchResult._id}>
               <SearchResult searchResult={searchResult} designDefinition={designDefinition} />
             </li>;
           })}
-        </ul>
+        </ul>}
+
       </div>
   );
 };

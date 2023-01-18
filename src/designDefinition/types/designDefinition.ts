@@ -19,6 +19,31 @@ export interface DesignDefinition {
   ui: UIDesignDefinition;
 }
 
+export interface NumberFacet {
+  type: string,
+  path: string,
+  boundaries: Array<number>
+}
+
+export interface StringFacet {
+  type: string,
+  path: string,
+  numBuckets: number;
+}
+
+export interface SearchStage {
+  index: string;
+  facet?: Facet;
+}
+
+export interface Facet {
+  operator: Record<string, any>
+  facets: Facets
+}
+
+export interface Facets extends Record<string, NumberFacet | StringFacet> {
+}
+
 export const SEARCH_QUERY_VARIABLE = '$$SEARCH_QUERY';
 export const URL_FIELD_NAME_VARIABLE = '$$URL_FIELD_NAME';
 
@@ -44,82 +69,3 @@ export interface UIDesignDefinition {
     docFieldName?: string
   }
 }
-
-export const getDefaultDesignDefinition = (): DesignDefinition => {
-  return {
-    searchIndex: {
-      name: 'default',
-      databaseName: 'sample_airbnb',
-      collectionName: 'listingsAndReviews',
-    },
-
-    pipeline: [
-      {
-        $search: {
-          text: {
-            query: SEARCH_QUERY_VARIABLE,
-            path: {
-              wildcard: "*",
-            },
-          },
-        },
-      },
-      {
-        $limit: 10,
-      },
-    ],
-
-    ui: {
-      docFieldNamesToRender: [],
-      docTitleFieldName: '',
-      url: {
-        docFieldName: '',
-        template: '',
-      },
-    },
-  };
-};
-
-export const validateDesignDefinition = (designDefinition: DesignDefinition): string | null => {
-  if (!designDefinition.searchIndex.name) {
-    return 'Specify Search Index name';
-  }
-
-  if (!designDefinition.searchIndex.name) {
-    return 'Specify Database name';
-  }
-
-  if (!designDefinition.searchIndex.name) {
-    return 'Specify Collection name';
-  }
-
-  if (!validatePipeline(designDefinition)) {
-    return validatePipeline(designDefinition);
-  }
-
-  return null;
-};
-
-
-const validatePipeline = (designDefinition: DesignDefinition): string | null => {
-  const pipeline = designDefinition.pipeline;
-
-  if (!pipeline) {
-    return 'Pipeline cannot be empty';
-  }
-
-  if (!Array.isArray(pipeline)) {
-    return 'Pipeline should be list of stages';
-  }
-
-  if (pipeline.length) {
-    return 'Pipeline should have at least one "$search" stage';
-  }
-
-  const searchStage = pipeline[0];
-  if (!Object.keys(searchStage).includes("$search")) {
-    return 'First stage in pipeline should have only one "$search" key';
-  }
-
-  return null;
-};

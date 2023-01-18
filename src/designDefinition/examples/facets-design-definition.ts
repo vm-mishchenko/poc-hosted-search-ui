@@ -6,7 +6,6 @@ export const facetsDesignDefinition: DesignDefinition = {
     "databaseName": "sample_airbnb",
     "collectionName": "listingsAndReviews",
   },
-  
   "pipeline": [
     {
       "$search": {
@@ -19,7 +18,7 @@ export const facetsDesignDefinition: DesignDefinition = {
                   "range": {
                     "path": "accommodates",
                     "gte": 1,
-                    "lte": 2,
+                    "lte": 40,
                   },
                 },
               ],
@@ -39,8 +38,17 @@ export const facetsDesignDefinition: DesignDefinition = {
             "accommodatesFacet": {
               "type": "number",
               "path": "accommodates",
-              "boundaries": [1, 4, 5],
-              "default": "other",
+              "boundaries": [
+                1,
+                3,
+                5,
+              ],
+              "default": "more",
+            },
+            "bedTypesFacet": {
+              "type": "string",
+              "path": "bed_type",
+              "numBuckets": 3,
             },
           },
         },
@@ -49,23 +57,31 @@ export const facetsDesignDefinition: DesignDefinition = {
     {
       "$facet": {
         "docs": [
-          { "$limit": 2 },
+          {
+            "$limit": 2,
+          },
         ],
         "meta": [
-          { "$replaceWith": "$$SEARCH_META" },
-          { "$limit": 1 },
+          {
+            "$replaceWith": "$$SEARCH_META",
+          },
+          {
+            "$limit": 1,
+          },
         ],
       },
     },
     {
       "$set": {
         "meta": {
-          "$arrayElemAt": ["$meta", 0],
+          "$arrayElemAt": [
+            "$meta",
+            0,
+          ],
         },
       },
     },
   ],
-
   "ui": {
     "docFieldNamesToRender": [
       "name",
