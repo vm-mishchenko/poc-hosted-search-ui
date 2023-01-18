@@ -62,6 +62,7 @@ export default async function handler (
   if (!searchQuery) {
     const response = await getResponseForFirstPage(designDefinition);
     res.status(200).json(response);
+    return;
   }
 
   const databaseName = designDefinition.searchIndex.databaseName;
@@ -97,9 +98,6 @@ const buildPipeline = (searchQuery: string, designDefinition: DesignDefinition):
   const pipelineWithQuery = JSON.parse(pipelineAsStringWithQuery);
 
   return pipelineWithQuery;
-};
-
-const buildMetaPipeline = () => {
 };
 
 const extractDesignDefinition = (req: NextApiRequest, res: NextApiResponse): DesignDefinition => {
