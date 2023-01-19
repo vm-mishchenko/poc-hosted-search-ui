@@ -6,7 +6,7 @@ import { DesignDefinition } from '../../designDefinition/types/designDefinition'
 import { search } from './services/search';
 import { SearchResult } from './components/SearchResult/SearchResult';
 import {
-  Meta,
+  MetaResponse,
   SearchErrorResponse,
 } from '../../pages/api/search';
 
@@ -17,7 +17,7 @@ export interface RuntimeProps {
 export const Runtime = ({ designDefinition }: RuntimeProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Array<Record<string, any>>>([]);
-  const [meta, setMeta] = useState<Meta>({});
+  const [meta, setMeta] = useState<MetaResponse>({});
   const [loading, setLoading] = useState(false);
   const [errorResponseMessage, setErrorResponseMessage] = useState('');
 

@@ -6,34 +6,36 @@ import type {
 import { isString } from '../../utils';
 import {
   DesignDefinition,
+  NumberFacet,
   SEARCH_QUERY_VARIABLE,
+  StringFacet,
 } from '../../designDefinition/types/designDefinition';
-import { getMongoClient } from '../../database/client';
-import {
-  Document,
-  MongoClient,
-} from 'mongodb';
 import {
   getCollectionName,
   getDatabaseName,
-  hasFacet,
+  getFacetByName,
   validateDesignDefinition,
 } from '../../designDefinition/utils';
+import { runPipeline } from '../../database/runPipeline';
+import { getRandomDocs } from '../../database/getRandomDocs';
+import {
+  FacetBucketMongoDB,
+  MetaMongoDB,
+} from '../../database/types';
 
 export interface SearchResponse {
   docs: Record<string, any>[];
-  meta: Meta;
+  meta: MetaResponse;
 }
 
-export interface Meta {
-  facet?: Array<MetaFacet>;
+export interface MetaResponse {
+  facets: Array<MetaFacetResponse>;
 }
 
-export interface MetaFacet {
-  buckets: Array<{
-    _id: number,
-    count: number
-  }>;
+export interface MetaFacetResponse {
+  name: string;
+  config: NumberFacet | StringFacet;
+  result: FacetBucketMongoDB[];
 }
 
 export interface SearchErrorResponse {
@@ -52,7 +54,7 @@ export default async function handler (
 ) {
   let designDefinition: DesignDefinition;
   try {
-    designDefinition = extractDesignDefinition(req, res);
+    designDefinition = extractDesignDefinition(req);
   } catch (error: any) {
     res.status(400).json({ errorMessage: error.message } as any);
     return;
@@ -68,30 +70,38 @@ export default async function handler (
   const databaseName = designDefinition.searchIndex.databaseName;
   const collectionName = designDefinition.searchIndex.collectionName;
   const pipeline = buildPipeline(searchQuery, designDefinition);
-  const pipelineHasFacets = hasFacet(designDefinition);
+  const searchResults = await runPipeline(databaseName, collectionName, pipeline);
 
-  const mongoDBClient = await getMongoClient();
-  const searchResults = await runPipeline(mongoDBClient, databaseName, collectionName, pipeline);
-
-  let response: SearchResponse;
-  if (pipelineHasFacets) {
-    response = searchResults[0] as SearchResponse;
-  } else {
-    response = {
-      docs: searchResults,
-      meta: {},
-    };
-  }
+  const response: SearchResponse = {
+    docs: searchResults.docs,
+    meta: mapToResponseMeta(searchResults.meta, designDefinition),
+  };
 
   res.status(200).json(response);
 }
 
-const runPipeline = (client: MongoClient, databaseName: string, collectionName: string, pipeline: Document[]) => {
-  const collection = client.db(databaseName).collection(collectionName);
-  return collection.aggregate(pipeline).toArray();
+const mapToResponseMeta = (metaMongoDB: MetaMongoDB, designDefinition: DesignDefinition): MetaResponse => {
+  const facetNames = Object.keys(metaMongoDB.facet);
+
+  const facets = facetNames.reduce((result, facetName) => {
+    const facetResult = metaMongoDB.facet[facetName].buckets;
+    const facetConfig = getFacetByName(facetName, designDefinition);
+    const facet: MetaFacetResponse = {
+      name: facetName,
+      result: facetResult,
+      config: facetConfig,
+    };
+
+    result.push(facet);
+    return result;
+  }, [] as MetaFacetResponse[]);
+
+  return {
+    facets,
+  };
 };
 
-const buildPipeline = (searchQuery: string, designDefinition: DesignDefinition): any => {
+const buildPipeline = (searchQuery: string, designDefinition: DesignDefinition): Document[] => {
   const pipeline = designDefinition.pipeline;
   const pipelineAsString = JSON.stringify(pipeline);
   const pipelineAsStringWithQuery = pipelineAsString.replace(SEARCH_QUERY_VARIABLE, searchQuery);
@@ -100,7 +110,7 @@ const buildPipeline = (searchQuery: string, designDefinition: DesignDefinition):
   return pipelineWithQuery;
 };
 
-const extractDesignDefinition = (req: NextApiRequest, res: NextApiResponse): DesignDefinition => {
+const extractDesignDefinition = (req: NextApiRequest): DesignDefinition => {
   let designDefinition: DesignDefinition;
 
   if (req.query.designDefinition && isString(req.query.designDefinition)) {
@@ -125,15 +135,8 @@ const getResponseForFirstPage = async (designDefinition: DesignDefinition): Prom
   const docs = await getRandomDocs(getDatabaseName(designDefinition), getCollectionName(designDefinition));
   return {
     docs,
-    meta: {},
+    meta: {
+      facets: [],
+    },
   };
-};
-
-/*
-* Return random 10 documents
-*/
-const getRandomDocs = async (databaseName: string, collectionName: string) => {
-  const mongoDBClient = await getMongoClient();
-  const collection = mongoDBClient.db(databaseName).collection(collectionName);
-  return collection.aggregate([{ $sample: { size: 10 } }]).toArray();
 };

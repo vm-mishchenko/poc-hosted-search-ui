@@ -2,8 +2,10 @@ import {
   DesignDefinition,
   Facet,
   Facets,
+  NumberFacet,
   SEARCH_QUERY_VARIABLE,
   SearchStage,
+  StringFacet,
 } from './types/designDefinition';
 
 export const getDefaultDesignDefinition = (): DesignDefinition => {
@@ -128,3 +130,16 @@ export const getFacets = (designDefinition: DesignDefinition): Facets => {
 
   return facets;
 };
+
+/**
+ * Return facets or throw error.
+ */
+export const getFacetByName = (facetName: string, designDefinition: DesignDefinition): NumberFacet | StringFacet => {
+  const facets = getFacets(designDefinition);
+  if (!facets.hasOwnProperty(facetName)) {
+    throw new Error(`Cannot find facet with name: ${facetName}`);
+  }
+
+  return facets[facetName];
+};
+
