@@ -37,8 +37,8 @@ export interface SearchStage {
 }
 
 export interface Facet {
-  operator: Record<string, any>
-  facets: Facets
+  operator: Record<string, any>;
+  facets: Facets;
 }
 
 export interface Facets extends Record<string, NumberFacet | StringFacet> {

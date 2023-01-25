@@ -3,6 +3,7 @@ import type {
   NextApiRequest,
   NextApiResponse,
 } from 'next';
+import { Document } from 'mongodb';
 import { isString } from '../../utils';
 import {
   DesignDefinition,
@@ -14,6 +15,9 @@ import {
   getCollectionName,
   getDatabaseName,
   getFacetByName,
+  getFacets,
+  getSearchIndexName,
+  hasFacet,
   validateDesignDefinition,
 } from '../../designDefinition/utils';
 import { runPipeline } from '../../database/runPipeline';
@@ -61,12 +65,6 @@ export default async function handler (
   }
 
   const searchQuery = isString(req.query.searchQuery) ? req.query.searchQuery : '';
-  if (!searchQuery) {
-    const response = await getResponseForFirstPage(designDefinition);
-    res.status(200).json(response);
-    return;
-  }
-
   const databaseName = designDefinition.searchIndex.databaseName;
   const collectionName = designDefinition.searchIndex.collectionName;
   const pipeline = buildPipeline(searchQuery, designDefinition);
@@ -102,12 +100,80 @@ const mapToResponseMeta = (metaMongoDB: MetaMongoDB, designDefinition: DesignDef
 };
 
 const buildPipeline = (searchQuery: string, designDefinition: DesignDefinition): Document[] => {
-  const pipeline = designDefinition.pipeline;
-  const pipelineAsString = JSON.stringify(pipeline);
-  const pipelineAsStringWithQuery = pipelineAsString.replace(SEARCH_QUERY_VARIABLE, searchQuery);
-  const pipelineWithQuery = JSON.parse(pipelineAsStringWithQuery);
+  if (searchQuery.length) {
+    const pipeline = designDefinition.pipeline;
+    const pipelineAsString = JSON.stringify(pipeline);
+    const pipelineAsStringWithQuery = pipelineAsString.replace(SEARCH_QUERY_VARIABLE, searchQuery);
+    const pipelineWithQuery = JSON.parse(pipelineAsStringWithQuery);
+    return pipelineWithQuery;
+  } else {
+    const searchIndexName = getSearchIndexName(designDefinition);
 
-  return pipelineWithQuery;
+    if (hasFacet(designDefinition)) {
+      const facets = getFacets(designDefinition);
+      return [
+        {
+          $search: {
+            index: searchIndexName,
+            facet: {
+              operator: {
+                queryString: {
+                  query: "*:*",
+                  defaultPath: "does-not-exists",
+                },
+              },
+              facets: facets,
+            },
+          },
+        },
+        {
+          $facet: {
+            "docs": [
+              {
+                "$limit": 2,
+              },
+            ],
+            "meta": [
+              {
+                "$replaceWith": "$$SEARCH_META",
+              },
+              {
+                "$limit": 1,
+              },
+            ],
+          },
+        },
+        {
+          $set: {
+            meta: {
+              $arrayElemAt: [
+                "$meta",
+                0,
+              ],
+            },
+          },
+        },
+        {
+          $limit: 10,
+        },
+      ];
+    } else {
+      return [
+        {
+          $search: {
+            index: searchIndexName,
+            queryString: {
+              query: "*:*",
+              defaultPath: "does-not-exists",
+            },
+          },
+        },
+        {
+          $limit: 10,
+        },
+      ];
+    }
+  }
 };
 
 const extractDesignDefinition = (req: NextApiRequest): DesignDefinition => {
@@ -132,6 +198,9 @@ const extractDesignDefinition = (req: NextApiRequest): DesignDefinition => {
 
 const getResponseForFirstPage = async (designDefinition: DesignDefinition): Promise<SearchResponse> => {
   // get first 10 results
+  if (hasFacet(designDefinition)) {
+
+  }
   const docs = await getRandomDocs(getDatabaseName(designDefinition), getCollectionName(designDefinition));
   return {
     docs,

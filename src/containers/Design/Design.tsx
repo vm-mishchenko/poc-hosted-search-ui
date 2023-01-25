@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import {
-  DesignDefinition,
-  validateDesignDefinition,
-} from '../../designDefinition/types/designDefinition';
+import { DesignDefinition } from '../../designDefinition/types/designDefinition';
 import styles from './Design.module.css';
+import { validateDesignDefinition } from '../../designDefinition/utils';
 
 export interface DesignProps {
   designDefinition: DesignDefinition;

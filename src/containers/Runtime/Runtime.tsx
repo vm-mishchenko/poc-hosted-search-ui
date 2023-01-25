@@ -17,7 +17,9 @@ export interface RuntimeProps {
 export const Runtime = ({ designDefinition }: RuntimeProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Array<Record<string, any>>>([]);
-  const [meta, setMeta] = useState<MetaResponse>({});
+  const [meta, setMeta] = useState<MetaResponse>({
+    facets: [],
+  });
   const [loading, setLoading] = useState(false);
   const [errorResponseMessage, setErrorResponseMessage] = useState('');
 
@@ -64,7 +66,6 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
             </li>;
           })}
         </ul>}
-
       </div>
   );
 };

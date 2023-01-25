@@ -143,3 +143,6 @@ export const getFacetByName = (facetName: string, designDefinition: DesignDefini
   return facets[facetName];
 };
 
+export const getSearchIndexName = (designDefinition: DesignDefinition): string => {
+  return designDefinition.searchIndex.name || "default";
+};
