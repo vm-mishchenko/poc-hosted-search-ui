@@ -13,7 +13,7 @@ const abortableFetch = (url: string) => {
   };
 };
 
-export const search = async (searchQuery: string, designDefinition: DesignDefinition): Promise<SearchResponse> => {
+export const search = async (searchQuery: string, selectedFacets: Map<string, string[]>, designDefinition: DesignDefinition): Promise<SearchResponse> => {
   // abort previous in-flight request
   if (!!currentFetch) {
     currentFetch.abort();
@@ -23,6 +23,7 @@ export const search = async (searchQuery: string, designDefinition: DesignDefini
   // construct query parameters
   const searchParams = new URLSearchParams();
   searchParams.append('searchQuery', searchQuery.trim());
+  searchParams.append('selectedFacets', JSON.stringify(Array.from(selectedFacets.entries())));
   searchParams.append('designDefinition', JSON.stringify(designDefinition));
 
   // construct url

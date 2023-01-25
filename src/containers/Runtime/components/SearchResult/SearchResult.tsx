@@ -42,12 +42,16 @@ const titleUI = (searchResult: Record<string, any>, designDefinition: DesignDefi
 
   if (!url) {
     return <p>
-      {searchResult[titleFieldName]}
+      <b>
+        {searchResult[titleFieldName]}
+      </b>
     </p>;
   }
 
   return <p>
-    <a href={url} target="_blank" rel="noreferrer">{searchResult[titleFieldName]}</a>
+    <b>
+      <a href={url} target="_blank" rel="noreferrer">{searchResult[titleFieldName]}</a>
+    </b>
   </p>;
 };
 

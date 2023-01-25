@@ -1,12 +1,15 @@
 import {
   DesignDefinition,
+  SEARCH_QUERY_VARIABLE,
+} from './types/designDefinition';
+import { getSearchStageFromPipeline } from '../pipeline/pipeline';
+import {
   Facet,
   Facets,
   NumberFacet,
-  SEARCH_QUERY_VARIABLE,
   SearchStage,
   StringFacet,
-} from './types/designDefinition';
+} from '../pipeline/pipeline-types';
 
 export const getDefaultDesignDefinition = (): DesignDefinition => {
   return {
@@ -98,7 +101,7 @@ export const getSearchStage = (designDefinition: DesignDefinition): SearchStage 
     throw new Error(error);
   }
 
-  return designDefinition.pipeline[0][SEARCH_STAGE_NAME];
+  return getSearchStageFromPipeline(designDefinition.pipeline);
 };
 
 export const hasFacet = (designDefinition: DesignDefinition): boolean => {

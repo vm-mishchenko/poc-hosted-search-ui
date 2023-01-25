@@ -7,13 +7,9 @@ import { Document } from 'mongodb';
 import { isString } from '../../utils';
 import {
   DesignDefinition,
-  NumberFacet,
   SEARCH_QUERY_VARIABLE,
-  StringFacet,
 } from '../../designDefinition/types/designDefinition';
 import {
-  getCollectionName,
-  getDatabaseName,
   getFacetByName,
   getFacets,
   getSearchIndexName,
@@ -21,15 +17,26 @@ import {
   validateDesignDefinition,
 } from '../../designDefinition/utils';
 import { runPipeline } from '../../database/runPipeline';
-import { getRandomDocs } from '../../database/getRandomDocs';
 import {
   FacetBucketMongoDB,
   MetaMongoDB,
 } from '../../database/types';
+import {
+  appendFilterClauseInCompoundOperator,
+  COMPOUND_OPERATOR_NAME,
+  getFacetOperatorNameFromPipeline,
+} from '../../pipeline/pipeline';
+import {
+  NUMBER_FACET_TYPE,
+  NumberFacet,
+  STRING_FACET_TYPE,
+  StringFacet,
+} from '../../pipeline/pipeline-types';
 
 export interface SearchResponse {
   docs: Record<string, any>[];
   meta: MetaResponse;
+  pipeline: Document[];
 }
 
 export interface MetaResponse {
@@ -40,6 +47,7 @@ export interface MetaFacetResponse {
   name: string;
   config: NumberFacet | StringFacet;
   result: FacetBucketMongoDB[];
+  selectedBucketIds: string[];
 }
 
 export interface SearchErrorResponse {
@@ -64,30 +72,45 @@ export default async function handler (
     return;
   }
 
+  let selectedFacets: Map<string, string[]>;
+  try {
+    if (isString(req.query.selectedFacets)) {
+      selectedFacets = new Map(JSON.parse(req.query.selectedFacets));
+    } else {
+      selectedFacets = new Map();
+    }
+  } catch (error: any) {
+    res.status(400).json({ errorMessage: error.message } as any);
+    return;
+  }
+
   const searchQuery = isString(req.query.searchQuery) ? req.query.searchQuery : '';
   const databaseName = designDefinition.searchIndex.databaseName;
   const collectionName = designDefinition.searchIndex.collectionName;
-  const pipeline = buildPipeline(searchQuery, designDefinition);
+  const pipeline = buildPipeline(searchQuery, selectedFacets, designDefinition);
   const searchResults = await runPipeline(databaseName, collectionName, pipeline);
 
   const response: SearchResponse = {
     docs: searchResults.docs,
-    meta: mapToResponseMeta(searchResults.meta, designDefinition),
+    meta: mapToResponseMeta(searchResults.meta, selectedFacets, designDefinition),
+    pipeline,
   };
 
   res.status(200).json(response);
 }
 
-const mapToResponseMeta = (metaMongoDB: MetaMongoDB, designDefinition: DesignDefinition): MetaResponse => {
+const mapToResponseMeta = (metaMongoDB: MetaMongoDB, selectedFacets: Map<string, string[]>, designDefinition: DesignDefinition): MetaResponse => {
   const facetNames = Object.keys(metaMongoDB.facet);
 
   const facets = facetNames.reduce((result, facetName) => {
     const facetResult = metaMongoDB.facet[facetName].buckets;
     const facetConfig = getFacetByName(facetName, designDefinition);
+    const selectedBucketIds = selectedFacets.get(facetName) || [];
     const facet: MetaFacetResponse = {
       name: facetName,
       result: facetResult,
       config: facetConfig,
+      selectedBucketIds,
     };
 
     result.push(facet);
@@ -99,14 +122,28 @@ const mapToResponseMeta = (metaMongoDB: MetaMongoDB, designDefinition: DesignDef
   };
 };
 
-const buildPipeline = (searchQuery: string, designDefinition: DesignDefinition): Document[] => {
+const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]>, designDefinition: DesignDefinition): Document[] => {
   if (searchQuery.length) {
     const pipeline = designDefinition.pipeline;
     const pipelineAsString = JSON.stringify(pipeline);
     const pipelineAsStringWithQuery = pipelineAsString.replace(SEARCH_QUERY_VARIABLE, searchQuery);
-    const pipelineWithQuery = JSON.parse(pipelineAsStringWithQuery);
-    return pipelineWithQuery;
+    let finalPipeline = JSON.parse(pipelineAsStringWithQuery);
+
+    // apply selected facets
+    if (selectedFacets.size > 0) {
+      // if there is selected facets, I assume pipeline uses "facet" operator
+      const facetOperatorName = getFacetOperatorNameFromPipeline(finalPipeline);
+
+      if (facetOperatorName === COMPOUND_OPERATOR_NAME) {
+        const filterClause = buildFilterClause(selectedFacets, designDefinition);
+        finalPipeline = appendFilterClauseInCompoundOperator(finalPipeline, filterClause);
+      } else {
+      }
+    }
+
+    return finalPipeline;
   } else {
+    // todo-vm: support selected facets with empty search query
     const searchIndexName = getSearchIndexName(designDefinition);
 
     if (hasFacet(designDefinition)) {
@@ -176,6 +213,42 @@ const buildPipeline = (searchQuery: string, designDefinition: DesignDefinition):
   }
 };
 
+const buildFilterClause = (selectedFacets: Map<string, string[]>, designDefinition: DesignDefinition): Document[] => {
+  const filterClause = Array.from(selectedFacets.keys())
+      .filter((facetName) => {
+        const selectedFacetValues = selectedFacets.get(facetName);
+        return selectedFacetValues && selectedFacetValues.length > 0;
+      })
+      .map((facetName) => {
+        const facetConfig = getFacetByName(facetName, designDefinition);
+        const selectedFacetValues = selectedFacets.get(facetName) as [];
+
+        switch (facetConfig.type) {
+          case  STRING_FACET_TYPE:
+            // todo-vm: how to run use Keyword analyzer properly
+            return {
+              text: {
+                path: facetConfig.path,
+                query: selectedFacetValues.join(', '),
+              },
+            };
+          case  NUMBER_FACET_TYPE:
+            // todo-vm: set proper range
+            return {
+              range: {
+                path: facetConfig.path,
+                gte: 1,
+                lte: 40,
+              },
+            };
+          default:
+            throw new Error(`Cannot recognize facet type: "${facetConfig.type}"`);
+        }
+      });
+
+  return filterClause;
+};
+
 const extractDesignDefinition = (req: NextApiRequest): DesignDefinition => {
   let designDefinition: DesignDefinition;
 
@@ -194,18 +267,4 @@ const extractDesignDefinition = (req: NextApiRequest): DesignDefinition => {
   }
 
   return designDefinition;
-};
-
-const getResponseForFirstPage = async (designDefinition: DesignDefinition): Promise<SearchResponse> => {
-  // get first 10 results
-  if (hasFacet(designDefinition)) {
-
-  }
-  const docs = await getRandomDocs(getDatabaseName(designDefinition), getCollectionName(designDefinition));
-  return {
-    docs,
-    meta: {
-      facets: [],
-    },
-  };
 };

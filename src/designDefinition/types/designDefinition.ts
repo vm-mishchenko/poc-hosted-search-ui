@@ -1,3 +1,5 @@
+import { Document } from 'mongodb';
+
 /**
  * Configuration User should specify in Atlas.
  */
@@ -14,35 +16,11 @@ export interface DesignDefinition {
     collectionName: string;
   };
 
-  pipeline: Record<string, any>[];
+  pipeline: Document[];
 
   ui: UIDesignDefinition;
 }
 
-export interface NumberFacet {
-  type: string,
-  path: string,
-  boundaries: Array<number>
-}
-
-export interface StringFacet {
-  type: string,
-  path: string,
-  numBuckets: number;
-}
-
-export interface SearchStage {
-  index: string;
-  facet?: Facet;
-}
-
-export interface Facet {
-  operator: Record<string, any>;
-  facets: Facets;
-}
-
-export interface Facets extends Record<string, NumberFacet | StringFacet> {
-}
 
 export const SEARCH_QUERY_VARIABLE = '$$SEARCH_QUERY';
 export const URL_FIELD_NAME_VARIABLE = '$$URL_FIELD_NAME';

@@ -13,15 +13,6 @@ export const facetsDesignDefinition: DesignDefinition = {
         "facet": {
           "operator": {
             "compound": {
-              "filter": [
-                {
-                  "range": {
-                    "path": "accommodates",
-                    "gte": 1,
-                    "lte": 40,
-                  },
-                },
-              ],
               "should": [
                 {
                   "text": {
@@ -85,6 +76,7 @@ export const facetsDesignDefinition: DesignDefinition = {
   "ui": {
     "docFieldNamesToRender": [
       "name",
+      "bed_type",
       "accommodates",
     ],
     "docTitleFieldName": "",

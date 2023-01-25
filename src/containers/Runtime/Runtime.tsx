@@ -9,6 +9,7 @@ import {
   MetaResponse,
   SearchErrorResponse,
 } from '../../pages/api/search';
+import { Facet } from './components/Facet/Facet';
 
 export interface RuntimeProps {
   designDefinition: DesignDefinition;
@@ -16,25 +17,40 @@ export interface RuntimeProps {
 
 export const Runtime = ({ designDefinition }: RuntimeProps) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedFacets, setSelectedFacets] = useState<Map<string, string[]>>(new Map());
   const [searchResults, setSearchResults] = useState<Array<Record<string, any>>>([]);
+  const [actualPipeline, setActualPipeline] = useState({});
   const [meta, setMeta] = useState<MetaResponse>({
     facets: [],
   });
   const [loading, setLoading] = useState(false);
   const [errorResponseMessage, setErrorResponseMessage] = useState('');
 
+  const onFacetChange = (facetName: string, selectedBucketIds: string[]) => {
+    const newSelectedFacets = new Map(selectedFacets);
+
+    if (selectedBucketIds.length === 0) {
+      newSelectedFacets.delete(facetName);
+    } else {
+      newSelectedFacets.set(facetName, selectedBucketIds);
+    }
+
+    setSelectedFacets(newSelectedFacets);
+  };
+
   useEffect(() => {
     setLoading(true);
     setErrorResponseMessage('');
-    search(searchQuery, designDefinition).then((searchResponse) => {
+    search(searchQuery, selectedFacets, designDefinition).then((searchResponse) => {
       setSearchResults(searchResponse.docs);
       setMeta(searchResponse.meta);
+      setActualPipeline(searchResponse.pipeline);
     }).catch((error: SearchErrorResponse) => {
       setErrorResponseMessage(error.errorMessage);
     }).finally(() => {
       setLoading(false);
     });
-  }, [searchQuery, designDefinition]);
+  }, [searchQuery, selectedFacets, designDefinition]);
 
   return (
       <div>
@@ -51,6 +67,21 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
         {errorResponseMessage && <p>
           Error: {errorResponseMessage}
         </p>}
+
+        <h3>Actual pipeline</h3>
+        <pre>
+          {JSON.stringify(actualPipeline, null, 2)}
+        </pre>
+
+        <h3>Facets</h3>
+        <ul>
+          {meta.facets.map((facet) => {
+            const selectedBucketIds = selectedFacets.get(facet.name) || [];
+            return <Facet facet={facet} selectedBucketIds={selectedBucketIds} onChange={onFacetChange}
+                          key={facet.name} />;
+          })}
+        </ul>
+
 
         <h3>Meta</h3>
         <pre>
