@@ -127,36 +127,29 @@ const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]
     const pipeline = designDefinition.pipeline;
     const pipelineAsString = JSON.stringify(pipeline);
     const pipelineAsStringWithQuery = pipelineAsString.replace(SEARCH_QUERY_VARIABLE, searchQuery);
-    let finalPipeline = JSON.parse(pipelineAsStringWithQuery);
-
-    // apply selected facets
-    if (selectedFacets.size > 0) {
-      // if there is selected facets, I assume pipeline uses "facet" operator
-      const facetOperatorName = getFacetOperatorNameFromPipeline(finalPipeline);
-
-      if (facetOperatorName === COMPOUND_OPERATOR_NAME) {
-        const filterClause = buildFilterClause(selectedFacets, designDefinition);
-        finalPipeline = appendFilterClauseInCompoundOperator(finalPipeline, filterClause);
-      } else {
-      }
-    }
-
-    return finalPipeline;
+    const pipelineWithQuery = JSON.parse(pipelineAsStringWithQuery);
+    const pipelineWithFacetFilter = addSelectedFacetsAsFilter(pipelineWithQuery, designDefinition, selectedFacets);
+    return pipelineWithFacetFilter;
   } else {
-    // todo-vm: support selected facets with empty search query
     const searchIndexName = getSearchIndexName(designDefinition);
 
     if (hasFacet(designDefinition)) {
       const facets = getFacets(designDefinition);
-      return [
+      const pipeline = [
         {
           $search: {
             index: searchIndexName,
             facet: {
               operator: {
-                queryString: {
-                  query: "*:*",
-                  defaultPath: "does-not-exists",
+                compound: {
+                  should: [
+                    {
+                      queryString: {
+                        query: "*:*",
+                        defaultPath: "does-not-exists",
+                      },
+                    },
+                  ],
                 },
               },
               facets: facets,
@@ -194,6 +187,10 @@ const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]
           $limit: 10,
         },
       ];
+
+      const pipelineWithFacetFilter = addSelectedFacetsAsFilter(pipeline, designDefinition, selectedFacets);
+
+      return pipelineWithFacetFilter;
     } else {
       return [
         {
@@ -213,8 +210,27 @@ const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]
   }
 };
 
+const addSelectedFacetsAsFilter = (pipeline: Document[], designDefinition: DesignDefinition, selectedFacets: Map<string, string[]>): Document[] => {
+  if (selectedFacets.size === 0) {
+    return pipeline;
+  }
+
+  // if there is selected facets, I assume pipeline uses "facet" operator
+  const facetOperatorName = getFacetOperatorNameFromPipeline(pipeline);
+
+  let finalPipeline = pipeline;
+  if (facetOperatorName === COMPOUND_OPERATOR_NAME) {
+    const filterClause = buildFilterClause(selectedFacets, designDefinition);
+    finalPipeline = appendFilterClauseInCompoundOperator(finalPipeline, filterClause);
+  } else {
+  }
+
+  return finalPipeline;
+};
+
 const buildFilterClause = (selectedFacets: Map<string, string[]>, designDefinition: DesignDefinition): Document[] => {
   const filterClause = Array.from(selectedFacets.keys())
+      // filter out facets without selected values
       .filter((facetName) => {
         const selectedFacetValues = selectedFacets.get(facetName);
         return selectedFacetValues && selectedFacetValues.length > 0;
@@ -225,7 +241,6 @@ const buildFilterClause = (selectedFacets: Map<string, string[]>, designDefiniti
 
         switch (facetConfig.type) {
           case  STRING_FACET_TYPE:
-            // todo-vm: how to run use Keyword analyzer properly
             return {
               text: {
                 path: facetConfig.path,
@@ -238,7 +253,7 @@ const buildFilterClause = (selectedFacets: Map<string, string[]>, designDefiniti
               range: {
                 path: facetConfig.path,
                 gte: 1,
-                lte: 40,
+                lte: 2,
               },
             };
           default:

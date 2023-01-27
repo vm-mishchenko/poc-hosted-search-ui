@@ -39,10 +39,12 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
   };
 
   useEffect(() => {
+    // todo-vm: clear selected facets when searchQuery was changed
     setLoading(true);
     setErrorResponseMessage('');
     search(searchQuery, selectedFacets, designDefinition).then((searchResponse) => {
       setSearchResults(searchResponse.docs);
+      // todo-vm: update list of facets AND selected values based on meta
       setMeta(searchResponse.meta);
       setActualPipeline(searchResponse.pipeline);
     }).catch((error: SearchErrorResponse) => {
@@ -68,11 +70,6 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
           Error: {errorResponseMessage}
         </p>}
 
-        <h3>Actual pipeline</h3>
-        <pre>
-          {JSON.stringify(actualPipeline, null, 2)}
-        </pre>
-
         <h3>Facets</h3>
         <ul>
           {meta.facets.map((facet) => {
@@ -81,12 +78,6 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
                           key={facet.name} />;
           })}
         </ul>
-
-
-        <h3>Meta</h3>
-        <pre>
-          {JSON.stringify(meta, null, 2)}
-        </pre>
 
         <h3>Search results</h3>
 
@@ -97,6 +88,16 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
             </li>;
           })}
         </ul>}
+
+        <h3>Meta</h3>
+        <pre>
+          {JSON.stringify(meta, null, 2)}
+        </pre>
+
+        <h3>Actual pipeline</h3>
+        <pre>
+          {JSON.stringify(actualPipeline, null, 2)}
+        </pre>
       </div>
   );
 };
