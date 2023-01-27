@@ -49,7 +49,6 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
     setErrorResponseMessage('');
     search(searchQuery, selectedFacets, designDefinition).then((searchResponse) => {
       setSearchResults(searchResponse.docs);
-      // todo-vm: update list of facets AND selected values based on meta
       setMeta(searchResponse.meta);
       setActualPipeline(searchResponse.pipeline);
     }).catch((error: SearchErrorResponse) => {

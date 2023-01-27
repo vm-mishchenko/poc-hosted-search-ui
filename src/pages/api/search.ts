@@ -131,6 +131,7 @@ const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]
     const pipelineWithFacetFilter = addSelectedFacetsAsFilter(pipelineWithQuery, designDefinition, selectedFacets);
     return pipelineWithFacetFilter;
   } else {
+    // todo-vm: try to use original pipeline when there is no query. Maybe add additional should phase?
     const searchIndexName = getSearchIndexName(designDefinition);
 
     if (hasFacet(designDefinition)) {
