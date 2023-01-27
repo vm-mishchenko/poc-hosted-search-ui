@@ -13,7 +13,7 @@ export const facetsDesignDefinition: DesignDefinition = {
         "facet": {
           "operator": {
             "compound": {
-              "should": [
+              "must": [
                 {
                   "text": {
                     "query": "$$SEARCH_QUERY",

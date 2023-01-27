@@ -142,7 +142,7 @@ const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]
             facet: {
               operator: {
                 compound: {
-                  should: [
+                  must: [
                     {
                       queryString: {
                         query: "*:*",

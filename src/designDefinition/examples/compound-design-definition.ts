@@ -10,7 +10,7 @@ export const compoundDesignDefinition: DesignDefinition = {
     {
       "$search": {
         "compound": {
-          "should": [
+          "must": [
             {
               "text": {
                 "query": "$$SEARCH_QUERY",
