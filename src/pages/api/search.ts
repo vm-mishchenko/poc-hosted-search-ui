@@ -228,7 +228,7 @@ const addSelectedFacetsAsFilter = (pipeline: Document[], designDefinition: Desig
   return finalPipeline;
 };
 
-const buildFilterClause = (selectedFacets: Map<string, string[]>, designDefinition: DesignDefinition): Document[] => {
+const buildFilterClause = (selectedFacets: Map<string, any[]>, designDefinition: DesignDefinition): Document[] => {
   const filterClause = Array.from(selectedFacets.keys())
       // filter out facets without selected values
       .filter((facetName) => {
@@ -237,7 +237,11 @@ const buildFilterClause = (selectedFacets: Map<string, string[]>, designDefiniti
       })
       .map((facetName) => {
         const facetConfig = getFacetByName(facetName, designDefinition);
-        const selectedFacetValues = selectedFacets.get(facetName) as [];
+        const selectedFacetValues = selectedFacets.get(facetName);
+
+        if (!selectedFacetValues) {
+          throw new Error(`Selected facet should have at least one value: "${selectedFacetValues}"`);
+        }
 
         switch (facetConfig.type) {
           case  STRING_FACET_TYPE:
@@ -248,12 +252,12 @@ const buildFilterClause = (selectedFacets: Map<string, string[]>, designDefiniti
               },
             };
           case  NUMBER_FACET_TYPE:
-            // todo-vm: set proper range
+            const range = selectedFacetValues[0];
             return {
               range: {
                 path: facetConfig.path,
-                gte: 1,
-                lte: 2,
+                gte: range[0],
+                lt: range[1],
               },
             };
           default:

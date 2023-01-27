@@ -1,12 +1,12 @@
 import { MetaFacetResponse } from '../../../../pages/api/search';
 
-export interface FacetProps {
+export interface StringFacetProps {
   facet: MetaFacetResponse;
   selectedBucketIds: string[];
   onChange: (facetName: string, selectedBucketIds: string[]) => void;
 }
 
-export const Facet = ({ facet, selectedBucketIds, onChange }: FacetProps) => {
+export const StringFacet = ({ facet, selectedBucketIds, onChange }: StringFacetProps) => {
   const handleCheck = (bucketId: string, isChecked: boolean) => {
     let newSelectedBucketIds = [...selectedBucketIds];
     if (isChecked) {

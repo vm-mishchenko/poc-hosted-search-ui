@@ -9,7 +9,7 @@ export interface NumberFacet {
 export const STRING_FACET_TYPE = 'string';
 
 export interface StringFacet {
-  type: "string",
+  type: string,
   path: string,
   numBuckets: number;
 }

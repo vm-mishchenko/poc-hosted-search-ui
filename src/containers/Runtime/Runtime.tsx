@@ -9,7 +9,12 @@ import {
   MetaResponse,
   SearchErrorResponse,
 } from '../../pages/api/search';
-import { Facet } from './components/Facet/Facet';
+import {
+  NUMBER_FACET_TYPE,
+  STRING_FACET_TYPE,
+} from '../../pipeline/pipeline-types';
+import { NumberFacetComp } from './components/NumberFacet/NumberFacetComp';
+import { StringFacet } from './components/StringFacet/StringFacet';
 
 export interface RuntimeProps {
   designDefinition: DesignDefinition;
@@ -17,7 +22,7 @@ export interface RuntimeProps {
 
 export const Runtime = ({ designDefinition }: RuntimeProps) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFacets, setSelectedFacets] = useState<Map<string, string[]>>(new Map());
+  const [selectedFacets, setSelectedFacets] = useState<Map<string, any[]>>(new Map());
   const [searchResults, setSearchResults] = useState<Array<Record<string, any>>>([]);
   const [actualPipeline, setActualPipeline] = useState({});
   const [meta, setMeta] = useState<MetaResponse>({
@@ -26,7 +31,7 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
   const [loading, setLoading] = useState(false);
   const [errorResponseMessage, setErrorResponseMessage] = useState('');
 
-  const onFacetChange = (facetName: string, selectedBucketIds: string[]) => {
+  const onFacetChange = (facetName: string, selectedBucketIds: any[]) => {
     const newSelectedFacets = new Map(selectedFacets);
 
     if (selectedBucketIds.length === 0) {
@@ -74,8 +79,17 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
         <ul>
           {meta.facets.map((facet) => {
             const selectedBucketIds = selectedFacets.get(facet.name) || [];
-            return <Facet facet={facet} selectedBucketIds={selectedBucketIds} onChange={onFacetChange}
-                          key={facet.name} />;
+
+            switch (facet.config.type) {
+              case NUMBER_FACET_TYPE:
+                return <NumberFacetComp facet={facet} selectedRanges={selectedBucketIds} onChange={onFacetChange}
+                                        key={facet.name} />;
+              case STRING_FACET_TYPE:
+                return <StringFacet facet={facet} selectedBucketIds={selectedBucketIds} onChange={onFacetChange}
+                                    key={facet.name} />;
+              default:
+                console.warn(`Unknown facet type: ${facet.config.type}`);
+            }
           })}
         </ul>
 
