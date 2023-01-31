@@ -255,14 +255,37 @@ const addSelectedFacetsAsFilter = (pipeline: Document[], designDefinition: Desig
   const facetOperatorName = getFacetOperatorNameFromPipeline(pipeline);
 
   let finalPipeline = pipeline;
-  if (facetOperatorName === COMPOUND_OPERATOR_NAME) {
-    const filterClause = buildFilterClause(selectedFacets, designDefinition);
-    finalPipeline = appendFilterClauseInCompoundOperator(finalPipeline, filterClause);
-  } else {
-    // todo-vm: what if there is not COMPOUND operator?
+  if (facetOperatorName !== COMPOUND_OPERATOR_NAME) {
+    finalPipeline = wrapOriginalFacetOperatorInCompound(finalPipeline);
   }
 
+  const filterClause = buildFilterClause(selectedFacets, designDefinition);
+  finalPipeline = appendFilterClauseInCompoundOperator(finalPipeline, filterClause);
+
   return finalPipeline;
+};
+
+// todo-vm: prettify me and add types!
+const wrapOriginalFacetOperatorInCompound = (pipeline: Document[]): Document[] => {
+  const facetOperatorName = getFacetOperatorNameFromPipeline(pipeline);
+
+  const copy = [...pipeline];
+  const searchStage = { ...copy[0] };
+  const originalOperator = searchStage.$search.facet.operator[facetOperatorName];
+  searchStage.$search.facet.operator = {
+    compound: {
+      must: [
+        { [facetOperatorName]: originalOperator },
+      ],
+    },
+  };
+
+  const restStages = copy.splice(1);
+
+  return [
+    searchStage,
+    ...restStages,
+  ];
 };
 
 const buildFilterClause = (selectedFacets: Map<string, any[]>, designDefinition: DesignDefinition): Document[] => {

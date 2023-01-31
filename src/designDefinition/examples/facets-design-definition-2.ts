@@ -1,6 +1,6 @@
 import { DesignDefinition } from '../types/designDefinition';
 
-export const facetsDesignDefinition: DesignDefinition = {
+export const facetsDesignDefinition2: DesignDefinition = {
   "searchIndex": {
     "name": "facets",
     "databaseName": "sample_airbnb",
@@ -12,17 +12,11 @@ export const facetsDesignDefinition: DesignDefinition = {
         "index": "facets",
         "facet": {
           "operator": {
-            "compound": {
-              "must": [
-                {
-                  "text": {
-                    "query": "$$SEARCH_QUERY",
-                    "path": {
-                      "wildcard": "*",
-                    },
-                  },
-                },
-              ],
+            "text": {
+              "query": "$$SEARCH_QUERY",
+              "path": {
+                "wildcard": "*",
+              },
             },
           },
           "facets": {

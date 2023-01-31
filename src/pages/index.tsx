@@ -4,10 +4,10 @@ import { Runtime } from '../containers/Runtime/Runtime';
 import styles from '../styles/Home.module.css';
 import { DesignDefinition } from '../designDefinition/types/designDefinition';
 import { Design } from '../containers/Design/Design';
-import { facetsDesignDefinition } from '../designDefinition/examples/facets-design-definition';
+import { facetsDesignDefinition2 } from '../designDefinition/examples/facets-design-definition-2';
 
 export default function Home () {
-  const [designDefinition, setDesignDefinition] = useState<DesignDefinition>(facetsDesignDefinition);
+  const [designDefinition, setDesignDefinition] = useState<DesignDefinition>(facetsDesignDefinition2);
   return <>
     <Head>
       <title>Hosted Search</title>
