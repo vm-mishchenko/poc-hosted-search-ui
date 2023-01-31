@@ -104,7 +104,7 @@ export const getSearchStage = (designDefinition: DesignDefinition): SearchStage 
   return getSearchStageFromPipeline(designDefinition.pipeline);
 };
 
-export const hasFacet = (designDefinition: DesignDefinition): boolean => {
+export const hasFacetOperator = (designDefinition: DesignDefinition): boolean => {
   const searchStage = getSearchStage(designDefinition);
   return !!searchStage['facet'];
 };

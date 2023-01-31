@@ -13,10 +13,11 @@ import {
   getFacetByName,
   getFacets,
   getSearchIndexName,
-  hasFacet,
+  getSearchStage,
+  hasFacetOperator,
   validateDesignDefinition,
 } from '../../designDefinition/utils';
-import { runPipeline } from '../../database/runPipeline';
+import { runPipelineNew } from '../../database/runPipeline';
 import {
   FacetBucketMongoDB,
   MetaMongoDB,
@@ -25,6 +26,7 @@ import {
   appendFilterClauseInCompoundOperator,
   COMPOUND_OPERATOR_NAME,
   getFacetOperatorNameFromPipeline,
+  getSearchStageFromPipeline,
 } from '../../pipeline/pipeline';
 import {
   NUMBER_FACET_TYPE,
@@ -87,17 +89,51 @@ export default async function handler (
   const searchQuery = isString(req.query.searchQuery) ? req.query.searchQuery : '';
   const databaseName = designDefinition.searchIndex.databaseName;
   const collectionName = designDefinition.searchIndex.collectionName;
-  const pipeline = buildPipeline(searchQuery, selectedFacets, designDefinition);
-  const searchResults = await runPipeline(databaseName, collectionName, pipeline);
+
+  const {
+    docs,
+    pipeline,
+  } = await queryDocuments(searchQuery, selectedFacets, designDefinition, databaseName, collectionName);
+  const meta = await queryMeta(searchQuery, selectedFacets, designDefinition, databaseName, collectionName);
 
   const response: SearchResponse = {
-    docs: searchResults.docs,
-    meta: mapToResponseMeta(searchResults.meta, selectedFacets, designDefinition),
+    docs,
+    meta,
     pipeline,
   };
 
   res.status(200).json(response);
 }
+
+const queryDocuments = async (searchQuery: string, selectedFacets: Map<string, string[]>, designDefinition: DesignDefinition, databaseName: string, collectionName: string): Promise<{
+  docs: Record<string, any>[],
+  pipeline: Document[],
+}> => {
+  const pipeline = buildPipeline(searchQuery, selectedFacets, designDefinition);
+  const docs = await runPipelineNew(databaseName, collectionName, pipeline);
+  return {
+    docs,
+    pipeline,
+  };
+};
+
+const queryMeta = async (searchQuery: string, selectedFacets: Map<string, string[]>, designDefinition: DesignDefinition, databaseName: string, collectionName: string): Promise<MetaResponse> => {
+  if (!hasFacetOperator(designDefinition)) {
+    return {
+      facets: [],
+    };
+  }
+
+  const pipeline = buildFacetPipeline(searchQuery, selectedFacets, designDefinition);
+  const documents = await runPipelineNew(databaseName, collectionName, pipeline);
+
+  // https://www.mongodb.com/docs/atlas/atlas-search/facet/#examples
+  const meta = {
+    facet: documents[0]['facet'],
+  };
+
+  return mapToResponseMeta(meta, selectedFacets, designDefinition);
+};
 
 const mapToResponseMeta = (metaMongoDB: MetaMongoDB, selectedFacets: Map<string, string[]>, designDefinition: DesignDefinition): MetaResponse => {
   const facetNames = Object.keys(metaMongoDB.facet);
@@ -134,7 +170,7 @@ const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]
     // todo-vm: try to use original pipeline when there is no query. Maybe add additional should phase?
     const searchIndexName = getSearchIndexName(designDefinition);
 
-    if (hasFacet(designDefinition)) {
+    if (hasFacetOperator(designDefinition)) {
       const facets = getFacets(designDefinition);
       const pipeline = [
         {
@@ -154,33 +190,6 @@ const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]
                 },
               },
               facets: facets,
-            },
-          },
-        },
-        {
-          $facet: {
-            "docs": [
-              {
-                "$limit": 2,
-              },
-            ],
-            "meta": [
-              {
-                "$replaceWith": "$$SEARCH_META",
-              },
-              {
-                "$limit": 1,
-              },
-            ],
-          },
-        },
-        {
-          $set: {
-            meta: {
-              $arrayElemAt: [
-                "$meta",
-                0,
-              ],
             },
           },
         },
@@ -211,6 +220,32 @@ const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]
   }
 };
 
+/**
+ * Returns $searchMeta pipeline based on original pipeline from design definition.
+ */
+const buildFacetPipeline = (searchQuery: string, selectedFacets: Map<string, string[]>, designDefinition: DesignDefinition): Document[] => {
+  const originalSearchStage = getSearchStage(designDefinition);
+  const metaDesignDefinition: DesignDefinition = {
+    ...designDefinition,
+    pipeline: [
+      {
+        $search: originalSearchStage,
+      },
+    ],
+  };
+
+  const pipeline = buildPipeline(searchQuery, selectedFacets, metaDesignDefinition);
+  const metaSearchStage = getSearchStageFromPipeline(pipeline);
+  const metaSearchPipeline = [
+    {
+      // replace $search to $searchMeta
+      $searchMeta: metaSearchStage,
+    },
+  ];
+
+  return metaSearchPipeline;
+};
+
 const addSelectedFacetsAsFilter = (pipeline: Document[], designDefinition: DesignDefinition, selectedFacets: Map<string, string[]>): Document[] => {
   if (selectedFacets.size === 0) {
     return pipeline;
@@ -224,6 +259,7 @@ const addSelectedFacetsAsFilter = (pipeline: Document[], designDefinition: Desig
     const filterClause = buildFilterClause(selectedFacets, designDefinition);
     finalPipeline = appendFilterClauseInCompoundOperator(finalPipeline, filterClause);
   } else {
+    // todo-vm: what if there is not COMPOUND operator?
   }
 
   return finalPipeline;

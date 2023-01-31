@@ -7,6 +7,12 @@ export interface PipelineResult {
   meta: MetaMongoDB
 }
 
+export const runPipelineNew = async (databaseName: string, collectionName: string, pipeline: Document[]): Promise<Record<string, any>[]> => {
+  const client = await getMongoClient();
+  const collection = client.db(databaseName).collection(collectionName);
+  return await collection.aggregate(pipeline).toArray();
+};
+
 export const runPipeline = async (databaseName: string, collectionName: string, pipeline: Document[]): Promise<PipelineResult> => {
   const client = await getMongoClient();
   const collection = client.db(databaseName).collection(collectionName);

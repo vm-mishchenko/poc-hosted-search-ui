@@ -22,7 +22,10 @@ export const basicDesignDefinition: DesignDefinition = {
     },
   ],
   "ui": {
-    "docFieldNamesToRender": [],
+    "docFieldNamesToRender": [
+      "name",
+      "description",
+    ],
     "docTitleFieldName": "",
     "url": {
       "docFieldName": "",
