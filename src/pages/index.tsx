@@ -6,7 +6,7 @@ import { DesignDefinition } from '../designDefinition/types/designDefinition';
 import { Design } from '../containers/Design/Design';
 import { facetsDesignDefinition2 } from '../designDefinition/examples/facets-design-definition-2';
 
-export default function Home () {
+const Home = () => {
   const [designDefinition, setDesignDefinition] = useState<DesignDefinition>(facetsDesignDefinition2);
   return <>
     <Head>
@@ -16,7 +16,7 @@ export default function Home () {
     <main>
       <div className={styles.container}>
         <div className={styles.designContainer}>
-          <Design onChange={setDesignDefinition} designDefinition={designDefinition} />
+          <Design onChange={setDesignDefinition} />
         </div>
         <div className={styles.runtimeContainer}>
           <Runtime designDefinition={designDefinition} />
@@ -24,4 +24,6 @@ export default function Home () {
       </div>
     </main>
   </>;
-}
+};
+
+export default Home;

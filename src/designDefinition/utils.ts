@@ -59,8 +59,9 @@ export const validateDesignDefinition = (designDefinition: DesignDefinition): st
     return 'Specify Collection name';
   }
 
-  if (!validatePipeline(designDefinition)) {
-    return validatePipeline(designDefinition);
+  const pipelineError = validatePipeline(designDefinition);
+  if (pipelineError) {
+    return pipelineError;
   }
 
   return null;
