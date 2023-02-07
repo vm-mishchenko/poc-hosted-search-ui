@@ -18,12 +18,23 @@ export interface DesignDefinition {
 
   pipeline: Document[];
 
+  filters: NumberRangeFilter[];
+
   ui: UIDesignDefinition;
 }
 
 
 export const SEARCH_QUERY_VARIABLE = '$$SEARCH_QUERY';
 export const URL_FIELD_NAME_VARIABLE = '$$URL_FIELD_NAME';
+
+export enum FILTER_TYPE {
+  NUMBER_RANGE = 'NUMBER_RANGE'
+}
+
+export interface NumberRangeFilter {
+  type: FILTER_TYPE.NUMBER_RANGE;
+  path: string;
+}
 
 export interface UIDesignDefinition {
   /*

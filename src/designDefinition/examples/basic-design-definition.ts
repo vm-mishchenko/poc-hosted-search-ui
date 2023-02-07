@@ -21,6 +21,7 @@ export const basicDesignDefinition: DesignDefinition = {
       "$limit": 10,
     },
   ],
+  "filters": [],
   "ui": {
     "docFieldNamesToRender": [
       "name",

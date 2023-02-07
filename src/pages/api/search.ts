@@ -27,13 +27,16 @@ import {
   COMPOUND_OPERATOR_NAME,
   getFacetOperatorNameFromPipeline,
   getSearchStageFromPipeline,
+  wrapOperatorInCompound,
 } from '../../pipeline/pipeline';
 import {
   NUMBER_FACET_TYPE,
   NumberFacet,
+  RangeOperator,
   STRING_FACET_TYPE,
   StringFacet,
 } from '../../pipeline/pipeline-types';
+import { SelectedNumberRangeFilter } from '../../containers/Runtime/components/NumberRangeFilterComp/NumberRangeFilterComp';
 
 export interface SearchResponse {
   docs: Record<string, any>[];
@@ -86,6 +89,18 @@ export default async function handler (
     return;
   }
 
+  let selectedFilters: Map<string, any>;
+  try {
+    if (isString(req.query.selectedFilters)) {
+      selectedFilters = new Map(JSON.parse(req.query.selectedFilters));
+    } else {
+      selectedFilters = new Map();
+    }
+  } catch (error: any) {
+    res.status(400).json({ errorMessage: error.message } as any);
+    return;
+  }
+
   const searchQuery = isString(req.query.searchQuery) ? req.query.searchQuery : '';
   const databaseName = designDefinition.searchIndex.databaseName;
   const collectionName = designDefinition.searchIndex.collectionName;
@@ -93,8 +108,8 @@ export default async function handler (
   const {
     docs,
     pipeline,
-  } = await queryDocuments(searchQuery, selectedFacets, designDefinition, databaseName, collectionName);
-  const meta = await queryMeta(searchQuery, selectedFacets, designDefinition, databaseName, collectionName);
+  } = await queryDocuments(searchQuery, selectedFacets, selectedFilters, designDefinition, databaseName, collectionName);
+  const meta = await queryMeta(searchQuery, selectedFacets, selectedFilters, designDefinition, databaseName, collectionName);
 
   const response: SearchResponse = {
     docs,
@@ -105,11 +120,11 @@ export default async function handler (
   res.status(200).json(response);
 }
 
-const queryDocuments = async (searchQuery: string, selectedFacets: Map<string, string[]>, designDefinition: DesignDefinition, databaseName: string, collectionName: string): Promise<{
+const queryDocuments = async (searchQuery: string, selectedFacets: Map<string, string[]>, selectedFilters: Map<string, any>, designDefinition: DesignDefinition, databaseName: string, collectionName: string): Promise<{
   docs: Record<string, any>[],
   pipeline: Document[],
 }> => {
-  const pipeline = buildPipeline(searchQuery, selectedFacets, designDefinition);
+  const pipeline = buildPipeline(searchQuery, selectedFacets, selectedFilters, designDefinition);
   const docs = await runPipelineNew(databaseName, collectionName, pipeline);
   return {
     docs,
@@ -117,14 +132,14 @@ const queryDocuments = async (searchQuery: string, selectedFacets: Map<string, s
   };
 };
 
-const queryMeta = async (searchQuery: string, selectedFacets: Map<string, string[]>, designDefinition: DesignDefinition, databaseName: string, collectionName: string): Promise<MetaResponse> => {
+const queryMeta = async (searchQuery: string, selectedFacets: Map<string, string[]>, selectedFilters: Map<string, any>, designDefinition: DesignDefinition, databaseName: string, collectionName: string): Promise<MetaResponse> => {
   if (!hasFacetOperator(designDefinition)) {
     return {
       facets: [],
     };
   }
 
-  const pipeline = buildFacetPipeline(searchQuery, selectedFacets, designDefinition);
+  const pipeline = buildFacetPipeline(searchQuery, selectedFacets, selectedFilters, designDefinition);
   const documents = await runPipelineNew(databaseName, collectionName, pipeline);
 
   // https://www.mongodb.com/docs/atlas/atlas-search/facet/#examples
@@ -158,14 +173,16 @@ const mapToResponseMeta = (metaMongoDB: MetaMongoDB, selectedFacets: Map<string,
   };
 };
 
-const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]>, designDefinition: DesignDefinition): Document[] => {
+const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]>, selectedFilters: Map<string, any>, designDefinition: DesignDefinition): Document[] => {
+  // todo-vm: I believe you could do better!
   if (searchQuery.length) {
     const pipeline = designDefinition.pipeline;
     const pipelineAsString = JSON.stringify(pipeline);
     const pipelineAsStringWithQuery = pipelineAsString.replace(SEARCH_QUERY_VARIABLE, searchQuery);
     const pipelineWithQuery = JSON.parse(pipelineAsStringWithQuery);
     const pipelineWithFacetFilter = addSelectedFacetsAsFilter(pipelineWithQuery, designDefinition, selectedFacets);
-    return pipelineWithFacetFilter;
+    const pipelineWithFacetAndFilters = addSelectedFilter(pipelineWithFacetFilter, designDefinition, selectedFilters);
+    return pipelineWithFacetAndFilters;
   } else {
     // todo-vm: try to use original pipeline when there is no query. Maybe add additional should phase?
     const searchIndexName = getSearchIndexName(designDefinition);
@@ -199,10 +216,11 @@ const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]
       ];
 
       const pipelineWithFacetFilter = addSelectedFacetsAsFilter(pipeline, designDefinition, selectedFacets);
+      const pipelineWithFacetAndFilters = addSelectedFilter(pipelineWithFacetFilter, designDefinition, selectedFilters);
 
-      return pipelineWithFacetFilter;
+      return pipelineWithFacetAndFilters;
     } else {
-      return [
+      const pipeline = [
         {
           $search: {
             index: searchIndexName,
@@ -216,6 +234,9 @@ const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]
           $limit: 10,
         },
       ];
+      const pipelineWithFacetAndFilters = addSelectedFilter(pipeline, designDefinition, selectedFilters);
+
+      return pipelineWithFacetAndFilters;
     }
   }
 };
@@ -223,7 +244,7 @@ const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]
 /**
  * Returns $searchMeta pipeline based on original pipeline from design definition.
  */
-const buildFacetPipeline = (searchQuery: string, selectedFacets: Map<string, string[]>, designDefinition: DesignDefinition): Document[] => {
+const buildFacetPipeline = (searchQuery: string, selectedFacets: Map<string, string[]>, selectedFilters: Map<string, any>, designDefinition: DesignDefinition): Document[] => {
   const originalSearchStage = getSearchStage(designDefinition);
   const metaDesignDefinition: DesignDefinition = {
     ...designDefinition,
@@ -234,7 +255,7 @@ const buildFacetPipeline = (searchQuery: string, selectedFacets: Map<string, str
     ],
   };
 
-  const pipeline = buildPipeline(searchQuery, selectedFacets, metaDesignDefinition);
+  const pipeline = buildPipeline(searchQuery, selectedFacets, selectedFilters, metaDesignDefinition);
   const metaSearchStage = getSearchStageFromPipeline(pipeline);
   const metaSearchPipeline = [
     {
@@ -256,39 +277,27 @@ const addSelectedFacetsAsFilter = (pipeline: Document[], designDefinition: Desig
 
   let finalPipeline = pipeline;
   if (facetOperatorName !== COMPOUND_OPERATOR_NAME) {
-    finalPipeline = wrapOriginalFacetOperatorInCompound(finalPipeline);
+    finalPipeline = wrapOperatorInCompound(finalPipeline);
   }
 
-  const filterClause = buildFilterClause(selectedFacets, designDefinition);
+  const filterClause = buildFilterClauseFromFacets(selectedFacets, designDefinition);
   finalPipeline = appendFilterClauseInCompoundOperator(finalPipeline, filterClause);
 
   return finalPipeline;
 };
 
-// todo-vm: prettify me and add types!
-const wrapOriginalFacetOperatorInCompound = (pipeline: Document[]): Document[] => {
-  const facetOperatorName = getFacetOperatorNameFromPipeline(pipeline);
+const addSelectedFilter = (pipeline: Document[], designDefinition: DesignDefinition, selectedFilters: Map<string, any>): Document[] => {
+  if (selectedFilters.size === 0) {
+    return pipeline;
+  }
 
-  const copy = [...pipeline];
-  const searchStage = { ...copy[0] };
-  const originalOperator = searchStage.$search.facet.operator[facetOperatorName];
-  searchStage.$search.facet.operator = {
-    compound: {
-      must: [
-        { [facetOperatorName]: originalOperator },
-      ],
-    },
-  };
-
-  const restStages = copy.splice(1);
-
-  return [
-    searchStage,
-    ...restStages,
-  ];
+  let finalPipeline = wrapOperatorInCompound(pipeline);
+  const filterClause = buildFilterClauseFromFilters(selectedFilters, designDefinition);
+  finalPipeline = appendFilterClauseInCompoundOperator(finalPipeline, filterClause);
+  return finalPipeline;
 };
 
-const buildFilterClause = (selectedFacets: Map<string, any[]>, designDefinition: DesignDefinition): Document[] => {
+const buildFilterClauseFromFacets = (selectedFacets: Map<string, any[]>, designDefinition: DesignDefinition): Document[] => {
   const filterClause = Array.from(selectedFacets.keys())
       // filter out facets without selected values
       .filter((facetName) => {
@@ -323,6 +332,35 @@ const buildFilterClause = (selectedFacets: Map<string, any[]>, designDefinition:
           default:
             throw new Error(`Cannot recognize facet type: "${facetConfig.type}"`);
         }
+      });
+
+  return filterClause;
+};
+
+const buildFilterClauseFromFilters = (selectedFilters: Map<string, any>, designDefinition: DesignDefinition): Document[] => {
+  const filterClause = designDefinition.filters
+      // filter out filters without selected values
+      .filter((filterConfig) => {
+        const filterKey = `${filterConfig.type}-${filterConfig.path}`;
+        return selectedFilters.has(filterKey);
+      })
+      .map((filterConfig) => {
+        const range: RangeOperator = {
+          path: filterConfig.path,
+        };
+
+        const filterKey = `${filterConfig.type}-${filterConfig.path}`;
+        const selectedValue: SelectedNumberRangeFilter = selectedFilters.get(filterKey);
+
+        if (selectedValue.min) {
+          range.gte = selectedValue.min;
+        }
+
+        if (selectedValue.max) {
+          range.lte = selectedValue.max;
+        }
+
+        return { range };
       });
 
   return filterClause;

@@ -1,4 +1,7 @@
-import { DesignDefinition } from '../types/designDefinition';
+import {
+  DesignDefinition,
+  FILTER_TYPE,
+} from '../types/designDefinition';
 
 export const facetsDesignDefinition2: DesignDefinition = {
   "searchIndex": {
@@ -43,11 +46,22 @@ export const facetsDesignDefinition2: DesignDefinition = {
       "$limit": 10,
     },
   ],
+  "filters": [
+    {
+      type: FILTER_TYPE.NUMBER_RANGE,
+      path: "bedrooms",
+    },
+    {
+      type: FILTER_TYPE.NUMBER_RANGE,
+      path: "number_of_reviews",
+    },
+  ],
   "ui": {
     "docFieldNamesToRender": [
       "name",
       "bed_type",
       "accommodates",
+      "bedrooms",
     ],
     "docTitleFieldName": "",
     "url": {

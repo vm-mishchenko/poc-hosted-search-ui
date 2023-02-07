@@ -4,19 +4,20 @@ import React, {
 } from 'react';
 import {
   DesignDefinition,
+  NumberRangeFilter,
   UIDesignDefinition,
 } from '../../designDefinition/types/designDefinition';
 import { validateDesignDefinition } from '../../designDefinition/utils';
 import ExpandableCard from '@leafygreen-ui/expandable-card';
 import Editor from '@monaco-editor/react';
 import { Document } from 'mongodb';
-import { facetsDesignDefinition2 } from '../../designDefinition/examples/facets-design-definition-2';
 import Banner from '@leafygreen-ui/banner';
 import Badge from '@leafygreen-ui/badge';
 import styles from './Design.module.css';
 import TextInput from '@leafygreen-ui/text-input';
 
 export interface DesignProps {
+  designDefinition: DesignDefinition;
   onChange: (newDesignDefinition: DesignDefinition) => void;
 }
 
@@ -46,7 +47,7 @@ const indexDefinition = {
   },
 };
 
-const buildDesignDefinition = (pipeline: Document[], ui: UIDesignDefinition): DesignDefinition => {
+const buildDesignDefinition = (pipeline: Document[], filters: NumberRangeFilter[], ui: UIDesignDefinition): DesignDefinition => {
   return {
     "searchIndex": {
       "name": "facets",
@@ -54,6 +55,7 @@ const buildDesignDefinition = (pipeline: Document[], ui: UIDesignDefinition): De
       "collectionName": "listingsAndReviews",
     },
     pipeline,
+    filters,
     ui,
   };
 };
@@ -61,10 +63,11 @@ const buildDesignDefinition = (pipeline: Document[], ui: UIDesignDefinition): De
 /**
  * Create and edit design definition.
  */
-export const Design = ({ onChange }: DesignProps) => {
+export const Design = ({ onChange, designDefinition }: DesignProps) => {
   const [error, setError] = useState('');
-  const [ui, setUI] = useState<UIDesignDefinition>(facetsDesignDefinition2.ui);
-  const [pipeline, setPipeline] = useState<Document[]>(facetsDesignDefinition2.pipeline);
+  const [ui, setUI] = useState<UIDesignDefinition>(designDefinition.ui);
+  const [pipeline, setPipeline] = useState<Document[]>(designDefinition.pipeline);
+  const [filters, setFilters] = useState<NumberRangeFilter[]>(designDefinition.filters);
 
   const onPipelineChange = (newPipelineAsString: string = "{}") => {
     setError('');
@@ -77,8 +80,19 @@ export const Design = ({ onChange }: DesignProps) => {
     }
   };
 
+  const onFilterChange = (filtersAsString: string = "{}") => {
+    setError('');
+
+    try {
+      const filters = JSON.parse(filtersAsString);
+      setFilters(filters);
+    } catch (e) {
+      setError('Cannot parse Aggregation pipeline.');
+    }
+  };
+
   useEffect(() => {
-    const newDesignDefinition = buildDesignDefinition(pipeline, ui);
+    const newDesignDefinition = buildDesignDefinition(pipeline, filters, ui);
     const error = validateDesignDefinition(newDesignDefinition);
 
     if (error) {
@@ -87,7 +101,7 @@ export const Design = ({ onChange }: DesignProps) => {
     }
 
     onChange(newDesignDefinition);
-  }, [pipeline, ui]);
+  }, [pipeline, ui, filters]);
 
   return <div>
     <h2 className={styles.aggregationDescription}>Design time</h2>
@@ -109,6 +123,19 @@ export const Design = ({ onChange }: DesignProps) => {
           value={JSON.stringify(pipeline, null, 2)}
       />
       {error && <Banner variant="danger">{error}</Banner>}
+    </ExpandableCard>
+
+    <ExpandableCard
+        title="Filters"
+        description="Configure search filters"
+    >
+      <Editor
+          height="300px"
+          width={"99%"}
+          defaultLanguage="json"
+          onChange={onFilterChange}
+          value={JSON.stringify(filters, null, 2)}
+      />
     </ExpandableCard>
 
     <ExpandableCard
@@ -187,17 +214,23 @@ export const Design = ({ onChange }: DesignProps) => {
 
     <ExpandableCard
         title="Index Definition"
-        description="Pre-configured Index Definition"
+        description="Configure how search results will be rendered"
     >
-      <p>
-        <a href="https://cloud.mongodb.com/v2/618c484956d6980855ec3229#/clusters/atlasSearch/vitalii-hosted-ui?collectionName=listingsAndReviews&database=sample_airbnb&indexName=facets&view=IndexOverview">
-          "Facet" Index definition</a>
-        {' '}has been already created for the <a
-          href="https://cloud.mongodb.com/v2/618c484956d6980855ec3229#/metrics/replicaSet/63bf37e97b4e7c4baba524c9/explorer/sample_airbnb/listingsAndReviews/find">sample_airbnb.listingsAndReviews</a> collection.
-      </p>
       <pre>
           {JSON.stringify(indexDefinition, null, 2)}
         </pre>
+    </ExpandableCard>
+
+    <ExpandableCard
+        title="Design definition"
+        description="Resulted Design Definition"
+    >
+      <Editor
+          height="500px"
+          width={"99%"}
+          defaultLanguage="json"
+          value={JSON.stringify(designDefinition, null, 2)}
+      />
     </ExpandableCard>
 
     {error && <div>

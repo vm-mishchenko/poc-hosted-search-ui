@@ -27,6 +27,7 @@ export const compoundDesignDefinition: DesignDefinition = {
       "$limit": 10,
     },
   ],
+  "filters": [],
   "ui": {
     "docFieldNamesToRender": [],
     "docTitleFieldName": "",

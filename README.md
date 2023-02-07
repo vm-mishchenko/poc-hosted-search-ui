@@ -6,6 +6,7 @@ implement:
 - show document example in Design tab
     - sampled value
 - [functional] support autocomplete
+- [functional] support sorting
 - [functional] support filters based on operators:
     - exists
     - range

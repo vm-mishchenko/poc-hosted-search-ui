@@ -49,6 +49,7 @@ export const facetsDesignDefinition: DesignDefinition = {
       "$limit": 10,
     },
   ],
+  "filters": [],
   "ui": {
     "docFieldNamesToRender": [
       "name",

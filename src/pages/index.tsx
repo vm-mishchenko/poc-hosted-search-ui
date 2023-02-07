@@ -16,7 +16,7 @@ const Home = () => {
     <main>
       <div className={styles.container}>
         <div className={styles.designContainer}>
-          <Design onChange={setDesignDefinition} />
+          <Design designDefinition={designDefinition} onChange={setDesignDefinition} />
         </div>
         <div className={styles.runtimeContainer}>
           <Runtime designDefinition={designDefinition} />

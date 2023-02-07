@@ -35,6 +35,8 @@ export const getDefaultDesignDefinition = (): DesignDefinition => {
       },
     ],
 
+    filters: [],
+
     ui: {
       docFieldNamesToRender: [],
       docTitleFieldName: '',
