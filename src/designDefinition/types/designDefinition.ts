@@ -20,6 +20,8 @@ export interface DesignDefinition {
 
   filters: NumberRangeFilter[];
 
+  sort: string[];
+
   ui: UIDesignDefinition;
 }
 

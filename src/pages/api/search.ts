@@ -37,7 +37,12 @@ import {
   StringFacet,
 } from '../../pipeline/pipeline-types';
 import { SelectedNumberRangeFilter } from '../../containers/Runtime/components/NumberRangeFilterComp/NumberRangeFilterComp';
+import {
+  SORT_DIRECTION,
+  SortRequest,
+} from '../../apiTypes/searchTypes';
 
+// Response
 export interface SearchResponse {
   docs: Record<string, any>[];
   meta: MetaResponse;
@@ -101,6 +106,16 @@ export default async function handler (
     return;
   }
 
+  let sort: SortRequest | undefined;
+  try {
+    if (isString(req.query.sort)) {
+      sort = JSON.parse(req.query.sort);
+    }
+  } catch (error: any) {
+    res.status(400).json({ errorMessage: error.message } as any);
+    return;
+  }
+
   const searchQuery = isString(req.query.searchQuery) ? req.query.searchQuery : '';
   const databaseName = designDefinition.searchIndex.databaseName;
   const collectionName = designDefinition.searchIndex.collectionName;
@@ -108,8 +123,8 @@ export default async function handler (
   const {
     docs,
     pipeline,
-  } = await queryDocuments(searchQuery, selectedFacets, selectedFilters, designDefinition, databaseName, collectionName);
-  const meta = await queryMeta(searchQuery, selectedFacets, selectedFilters, designDefinition, databaseName, collectionName);
+  } = await queryDocuments(searchQuery, selectedFacets, selectedFilters, sort, designDefinition, databaseName, collectionName);
+  const meta = await queryMeta(searchQuery, selectedFacets, selectedFilters, sort, designDefinition, databaseName, collectionName);
 
   const response: SearchResponse = {
     docs,
@@ -120,11 +135,11 @@ export default async function handler (
   res.status(200).json(response);
 }
 
-const queryDocuments = async (searchQuery: string, selectedFacets: Map<string, string[]>, selectedFilters: Map<string, any>, designDefinition: DesignDefinition, databaseName: string, collectionName: string): Promise<{
+const queryDocuments = async (searchQuery: string, selectedFacets: Map<string, string[]>, selectedFilters: Map<string, any>, sort: SortRequest | undefined, designDefinition: DesignDefinition, databaseName: string, collectionName: string): Promise<{
   docs: Record<string, any>[],
   pipeline: Document[],
 }> => {
-  const pipeline = buildPipeline(searchQuery, selectedFacets, selectedFilters, designDefinition);
+  const pipeline = buildPipeline(searchQuery, selectedFacets, selectedFilters, sort, designDefinition);
   const docs = await runPipelineNew(databaseName, collectionName, pipeline);
   return {
     docs,
@@ -132,14 +147,14 @@ const queryDocuments = async (searchQuery: string, selectedFacets: Map<string, s
   };
 };
 
-const queryMeta = async (searchQuery: string, selectedFacets: Map<string, string[]>, selectedFilters: Map<string, any>, designDefinition: DesignDefinition, databaseName: string, collectionName: string): Promise<MetaResponse> => {
+const queryMeta = async (searchQuery: string, selectedFacets: Map<string, string[]>, selectedFilters: Map<string, any>, sort: SortRequest | undefined, designDefinition: DesignDefinition, databaseName: string, collectionName: string): Promise<MetaResponse> => {
   if (!hasFacetOperator(designDefinition)) {
     return {
       facets: [],
     };
   }
 
-  const pipeline = buildFacetPipeline(searchQuery, selectedFacets, selectedFilters, designDefinition);
+  const pipeline = buildFacetPipeline(searchQuery, selectedFacets, selectedFilters, sort, designDefinition);
   const documents = await runPipelineNew(databaseName, collectionName, pipeline);
 
   // https://www.mongodb.com/docs/atlas/atlas-search/facet/#examples
@@ -173,7 +188,7 @@ const mapToResponseMeta = (metaMongoDB: MetaMongoDB, selectedFacets: Map<string,
   };
 };
 
-const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]>, selectedFilters: Map<string, any>, designDefinition: DesignDefinition): Document[] => {
+const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]>, selectedFilters: Map<string, any>, sort: SortRequest | undefined, designDefinition: DesignDefinition): Document[] => {
   // todo-vm: I believe you could do better!
   if (searchQuery.length) {
     const pipeline = designDefinition.pipeline;
@@ -182,6 +197,11 @@ const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]
     const pipelineWithQuery = JSON.parse(pipelineAsStringWithQuery);
     const pipelineWithFacetFilter = addSelectedFacetsAsFilter(pipelineWithQuery, designDefinition, selectedFacets);
     const pipelineWithFacetAndFilters = addSelectedFilter(pipelineWithFacetFilter, designDefinition, selectedFilters);
+
+    if (sort) {
+      return addSortStage(pipelineWithFacetAndFilters, designDefinition, sort);
+    }
+
     return pipelineWithFacetAndFilters;
   } else {
     // todo-vm: try to use original pipeline when there is no query. Maybe add additional should phase?
@@ -217,6 +237,9 @@ const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]
 
       const pipelineWithFacetFilter = addSelectedFacetsAsFilter(pipeline, designDefinition, selectedFacets);
       const pipelineWithFacetAndFilters = addSelectedFilter(pipelineWithFacetFilter, designDefinition, selectedFilters);
+      if (sort) {
+        return addSortStage(pipelineWithFacetAndFilters, designDefinition, sort);
+      }
 
       return pipelineWithFacetAndFilters;
     } else {
@@ -235,6 +258,9 @@ const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]
         },
       ];
       const pipelineWithFacetAndFilters = addSelectedFilter(pipeline, designDefinition, selectedFilters);
+      if (sort) {
+        return addSortStage(pipelineWithFacetAndFilters, designDefinition, sort);
+      }
 
       return pipelineWithFacetAndFilters;
     }
@@ -244,7 +270,7 @@ const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]
 /**
  * Returns $searchMeta pipeline based on original pipeline from design definition.
  */
-const buildFacetPipeline = (searchQuery: string, selectedFacets: Map<string, string[]>, selectedFilters: Map<string, any>, designDefinition: DesignDefinition): Document[] => {
+const buildFacetPipeline = (searchQuery: string, selectedFacets: Map<string, string[]>, selectedFilters: Map<string, any>, sort: SortRequest | undefined, designDefinition: DesignDefinition): Document[] => {
   const originalSearchStage = getSearchStage(designDefinition);
   const metaDesignDefinition: DesignDefinition = {
     ...designDefinition,
@@ -255,7 +281,7 @@ const buildFacetPipeline = (searchQuery: string, selectedFacets: Map<string, str
     ],
   };
 
-  const pipeline = buildPipeline(searchQuery, selectedFacets, selectedFilters, metaDesignDefinition);
+  const pipeline = buildPipeline(searchQuery, selectedFacets, selectedFilters, sort, metaDesignDefinition);
   const metaSearchStage = getSearchStageFromPipeline(pipeline);
   const metaSearchPipeline = [
     {
@@ -295,6 +321,22 @@ const addSelectedFilter = (pipeline: Document[], designDefinition: DesignDefinit
   const filterClause = buildFilterClauseFromFilters(selectedFilters, designDefinition);
   finalPipeline = appendFilterClauseInCompoundOperator(finalPipeline, filterClause);
   return finalPipeline;
+};
+
+const addSortStage = (pipeline: Document[], designDefinition: DesignDefinition, sort: SortRequest): Document[] => {
+  let finalPipeline = wrapOperatorInCompound(pipeline);
+  const sortStage = buildSortStage(sort);
+  finalPipeline.push(sortStage);
+  return finalPipeline;
+};
+
+const buildSortStage = (sort: SortRequest): Document => {
+  return {
+    $sort: {
+      // todo-vm: does it work for nested fields, e.g. "review.accuracy"?
+      [sort.path]: sort.direction === SORT_DIRECTION.ASC ? 1 : -1,
+    },
+  };
 };
 
 const buildFilterClauseFromFacets = (selectedFacets: Map<string, any[]>, designDefinition: DesignDefinition): Document[] => {

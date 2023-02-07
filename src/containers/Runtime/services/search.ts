@@ -1,5 +1,6 @@
 import { DesignDefinition } from '../../../designDefinition/types/designDefinition';
 import { SearchResponse } from '../../../pages/api/search';
+import { SortRequest } from '../../../apiTypes/searchTypes';
 
 let currentFetch: any;
 
@@ -13,7 +14,7 @@ const abortableFetch = (url: string) => {
   };
 };
 
-export const search = async (searchQuery: string, selectedFacets: Map<string, string[]>, selectedFilters: Map<string, any>, designDefinition: DesignDefinition): Promise<SearchResponse> => {
+export const search = async (searchQuery: string, selectedFacets: Map<string, string[]>, selectedFilters: Map<string, any>, selectedSort: SortRequest | null, designDefinition: DesignDefinition): Promise<SearchResponse> => {
   // abort previous in-flight request
   if (!!currentFetch) {
     currentFetch.abort();
@@ -26,6 +27,7 @@ export const search = async (searchQuery: string, selectedFacets: Map<string, st
   searchParams.append('selectedFacets', JSON.stringify(Array.from(selectedFacets.entries())));
   searchParams.append('selectedFilters', JSON.stringify(Array.from(selectedFilters.entries())));
   searchParams.append('designDefinition', JSON.stringify(designDefinition));
+  selectedSort && searchParams.append('sort', JSON.stringify(selectedSort));
 
   // construct url
   const url = `/api/search?${searchParams}`;

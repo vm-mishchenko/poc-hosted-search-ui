@@ -6,8 +6,9 @@ implement:
 - show document example in Design tab
     - sampled value
 - [functional] support autocomplete
-- [functional] support sorting
-- [functional] render nested fields
+    - support recent searches
+    - add filter by category
+        - ![img.png](docs/img/search-box-category.png)
 - search pipeline
     - add button to quickly transform search query to:
         - compound

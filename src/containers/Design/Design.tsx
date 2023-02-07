@@ -47,7 +47,7 @@ const indexDefinition = {
   },
 };
 
-const buildDesignDefinition = (pipeline: Document[], filters: NumberRangeFilter[], ui: UIDesignDefinition): DesignDefinition => {
+const buildDesignDefinition = (pipeline: Document[], filters: NumberRangeFilter[], sort: Array<string>, ui: UIDesignDefinition): DesignDefinition => {
   return {
     "searchIndex": {
       "name": "facets",
@@ -56,6 +56,7 @@ const buildDesignDefinition = (pipeline: Document[], filters: NumberRangeFilter[
     },
     pipeline,
     filters,
+    sort,
     ui,
   };
 };
@@ -68,6 +69,7 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
   const [ui, setUI] = useState<UIDesignDefinition>(designDefinition.ui);
   const [pipeline, setPipeline] = useState<Document[]>(designDefinition.pipeline);
   const [filters, setFilters] = useState<NumberRangeFilter[]>(designDefinition.filters);
+  const [sort, setSort] = useState<Array<string>>(designDefinition.sort);
 
   const onPipelineChange = (newPipelineAsString: string = "{}") => {
     setError('');
@@ -92,7 +94,7 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
   };
 
   useEffect(() => {
-    const newDesignDefinition = buildDesignDefinition(pipeline, filters, ui);
+    const newDesignDefinition = buildDesignDefinition(pipeline, filters, sort, ui);
     const error = validateDesignDefinition(newDesignDefinition);
 
     if (error) {
@@ -101,7 +103,7 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
     }
 
     onChange(newDesignDefinition);
-  }, [pipeline, ui, filters]);
+  }, [pipeline, ui, filters, sort]);
 
   return <div>
     <h2 className={styles.aggregationDescription}>Design time</h2>
@@ -135,6 +137,21 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
           defaultLanguage="json"
           onChange={onFilterChange}
           value={JSON.stringify(filters, null, 2)}
+      />
+    </ExpandableCard>
+
+    <ExpandableCard
+        title="Sort"
+        description="Configure sort fields"
+    >
+      <TextInput
+          label="Sort fields"
+          description="List of document fields to sort on"
+          placeholder="name1, name2, ..."
+          onChange={event => {
+            setSort(event.target.value ? event.target.value.split(', ') : []);
+          }}
+          value={sort?.join(', ')}
       />
     </ExpandableCard>
 

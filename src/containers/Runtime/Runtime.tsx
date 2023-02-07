@@ -16,6 +16,8 @@ import {
 import { NumberFacetComp } from './components/NumberFacet/NumberFacetComp';
 import { StringFacet } from './components/StringFacet/StringFacet';
 import { NumberRangeFilterComp } from './components/NumberRangeFilterComp/NumberRangeFilterComp';
+import { SortComp } from './components/SortComp/SortComp';
+import { SortRequest } from '../../apiTypes/searchTypes';
 
 export interface RuntimeProps {
   designDefinition: DesignDefinition;
@@ -25,6 +27,7 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFacets, setSelectedFacets] = useState<Map<string, any[]>>(new Map());
   const [selectedFilters, setSelectedFilters] = useState<Map<string, any>>(new Map());
+  const [selectedSort, setSelectedSort] = useState<SortRequest | null>(null);
   const [searchResults, setSearchResults] = useState<Array<Record<string, any>>>([]);
   const [actualPipeline, setActualPipeline] = useState({});
   const [meta, setMeta] = useState<MetaResponse>({
@@ -57,11 +60,19 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
     setSelectedFilters(newSelectedFilers);
   };
 
+  // Reset selected sort option to default when Design definition does not have such field anymore.
+  useEffect(() => {
+    if (selectedSort && !designDefinition.sort.includes(selectedSort.path)) {
+      setSelectedSort(null);
+    }
+  }, [designDefinition.sort]);
+
+  // Run search request
   useEffect(() => {
     // todo-vm: clear selected facets when searchQuery was changed
     setLoading(true);
     setErrorResponseMessage('');
-    search(searchQuery, selectedFacets, selectedFilters, designDefinition).then((searchResponse) => {
+    search(searchQuery, selectedFacets, selectedFilters, selectedSort, designDefinition).then((searchResponse) => {
       setSearchResults(searchResponse.docs);
       setMeta(searchResponse.meta);
       setActualPipeline(searchResponse.pipeline);
@@ -70,7 +81,7 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
     }).finally(() => {
       setLoading(false);
     });
-  }, [searchQuery, selectedFacets, selectedFilters, designDefinition]);
+  }, [searchQuery, selectedFacets, selectedFilters, selectedSort, designDefinition]);
 
   return (
       <div>
@@ -87,6 +98,9 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
         {errorResponseMessage && <p>
           Error: {errorResponseMessage}
         </p>}
+
+        <h3>Sort</h3>
+        <SortComp options={designDefinition.sort} selectedSort={selectedSort} onChange={setSelectedSort} />
 
         <h3>Filters</h3>
         <ul>

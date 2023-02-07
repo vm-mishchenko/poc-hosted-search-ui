@@ -105,8 +105,6 @@ export const appendFilterClauseInCompoundOperator = (pipeline: Document[], facet
     if (!compoundOperator) {
       throw new Error(`Cannot find compound operator: ${newPipeline}`);
     }
-
-
   } else {
     compoundOperator = searchStage[COMPOUND_OPERATOR_NAME];
 

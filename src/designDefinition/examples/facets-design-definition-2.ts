@@ -56,6 +56,7 @@ export const facetsDesignDefinition2: DesignDefinition = {
       path: "review_scores.review_scores_accuracy",
     },
   ],
+  "sort": [],
   "ui": {
     "docFieldNamesToRender": [
       "name",
