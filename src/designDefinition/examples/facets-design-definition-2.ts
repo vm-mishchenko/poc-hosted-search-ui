@@ -53,7 +53,7 @@ export const facetsDesignDefinition2: DesignDefinition = {
     },
     {
       type: FILTER_TYPE.NUMBER_RANGE,
-      path: "number_of_reviews",
+      path: "review_scores.review_scores_accuracy",
     },
   ],
   "ui": {
@@ -62,6 +62,7 @@ export const facetsDesignDefinition2: DesignDefinition = {
       "bed_type",
       "accommodates",
       "bedrooms",
+      "review_scores.review_scores_accuracy",
     ],
     "docTitleFieldName": "",
     "url": {

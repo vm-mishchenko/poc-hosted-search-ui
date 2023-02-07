@@ -7,11 +7,7 @@ implement:
     - sampled value
 - [functional] support autocomplete
 - [functional] support sorting
-- [functional] support filters based on operators:
-    - exists
-    - range
-        - number
-        - dates
+- [functional] render nested fields
 - search pipeline
     - add button to quickly transform search query to:
         - compound

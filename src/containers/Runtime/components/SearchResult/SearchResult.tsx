@@ -55,6 +55,12 @@ const titleUI = (searchResult: Record<string, any>, designDefinition: DesignDefi
   </p>;
 };
 
+const resolvePath = (object: Record<string, any>, path: string, defaultValue: any): any => {
+  return path
+      .split('.')
+      .reduce((o, p) => o ? o[p] : defaultValue, object);
+};
+
 const getSearchResultObject = (searchResult: Record<string, any>, designDefinition: DesignDefinition) => {
   const fieldNamesToRender = designDefinition.ui.docFieldNamesToRender ? designDefinition.ui.docFieldNamesToRender : [];
 
@@ -62,8 +68,9 @@ const getSearchResultObject = (searchResult: Record<string, any>, designDefiniti
     return searchResult;
   }
 
-  const searchResultObject = fieldNamesToRender.reduce((result: any, field: any) => {
-    result[field] = searchResult[field];
+  const searchResultObject = fieldNamesToRender.reduce((result: any, fieldName: string) => {
+    // fieldName might be nested, e.g. review.accuracy
+    result[fieldName] = resolvePath(searchResult, fieldName, '');
     return result;
   }, {} as Record<string, any>);
 
