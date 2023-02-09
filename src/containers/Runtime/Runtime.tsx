@@ -4,7 +4,6 @@ import React, {
 } from 'react';
 import { DesignDefinition } from '../../designDefinition/types/designDefinition';
 import { search } from './services/search';
-import { SearchResult } from './components/SearchResult/SearchResult';
 import {
   MetaResponse,
   SearchErrorResponse,
@@ -16,8 +15,14 @@ import {
 import { NumberFacetComp } from './components/NumberFacet/NumberFacetComp';
 import { StringFacet } from './components/StringFacet/StringFacet';
 import { NumberRangeFilterComp } from './components/NumberRangeFilterComp/NumberRangeFilterComp';
-import { SortComp } from './components/SortComp/SortComp';
 import { SortRequest } from '../../apiTypes/searchTypes';
+import TextInput from '@leafygreen-ui/text-input';
+import styles from './Runtime.module.css';
+import { SortComp } from './components/SortComp/SortComp';
+import { ResultsCountComp } from './components/ResultNumberComp/ResultsCountComp';
+import { SearchResultsComp } from './components/SearchResultsComp/SearchResultsComp';
+import { NoResultsComp } from './components/NoResultsComp/NoResultsComp';
+
 
 export interface RuntimeProps {
   designDefinition: DesignDefinition;
@@ -87,64 +92,71 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
       <div>
         <h2>Runtime</h2>
 
-        <input value={searchQuery} type="search" onChange={(event) => {
-          setSearchQuery(event.target.value);
-        }} />
+        <header className={styles.header}>
+          <TextInput
+              label={''}
+              placeholder={'Search'}
+              sizeVariant="large"
+              onChange={(event) => {
+                setSearchQuery(event.target.value);
+              }}
+              type="search"
+              value={searchQuery}
+          />
+        </header>
 
-        <p>Loading: {loading ? 'true' : 'false'}</p>
+        <div className={styles.contentWrapper}>
+          <div className={styles.sidebar}>
+            <div>
+              {meta.facets.map((facet) => {
+                const selectedBucketIds = selectedFacets.get(facet.name) || [];
 
-        <p>Number of Search results: {searchResults.length}</p>
+                switch (facet.config.type) {
+                  case NUMBER_FACET_TYPE:
+                    return <NumberFacetComp facet={facet} selectedRanges={selectedBucketIds} onChange={onFacetChange}
+                                            key={facet.name} className={styles.facet} />;
+                  case STRING_FACET_TYPE:
+                    return <StringFacet facet={facet} selectedBucketIds={selectedBucketIds} onChange={onFacetChange}
+                                        key={facet.name} className={styles.facet} />;
+                  default:
+                    console.warn(`Unknown facet type: ${facet.config.type}`);
+                }
+              })}
+            </div>
 
-        {errorResponseMessage && <p>
-          Error: {errorResponseMessage}
-        </p>}
+            <div>
+              {designDefinition.filters.map((filter) => {
+                const filterKey = `${filter.type}-${filter.path}`;
+                const selectedFilterValues = selectedFilters.get(filterKey) || {};
+                return <NumberRangeFilterComp
+                    onChange={(value) => {
+                      onFilterChange(filterKey, value);
+                    }}
+                    selectedFilters={selectedFilterValues}
+                    key={filterKey}
+                    filter={filter}
+                    className={styles.filter}
+                />;
+              })}
+            </div>
+          </div>
 
-        <h3>Sort</h3>
-        <SortComp options={designDefinition.sort} selectedSort={selectedSort} onChange={setSelectedSort} />
+          <div className={styles.main}>
+            <div className={styles.resultsHeader}>
+              <ResultsCountComp resultsCount={searchResults.length} />
+              <div>
+                <SortComp options={designDefinition.sort} selectedSort={selectedSort} onChange={setSelectedSort} />
+              </div>
+            </div>
 
-        <h3>Filters</h3>
-        <ul>
-          {designDefinition.filters.map((filter) => {
-            const filterKey = `${filter.type}-${filter.path}`;
-            const selectedFilterValues = selectedFilters.get(filterKey) || {};
-            return <NumberRangeFilterComp
-                onChange={(value) => {
-                  onFilterChange(filterKey, value);
-                }}
-                selectedFilters={selectedFilterValues}
-                key={filterKey}
-                filter={filter}
-            />;
-          })}
-        </ul>
+            {errorResponseMessage && <p>
+              Error: {errorResponseMessage}
+            </p>}
 
-        <h3>Facets</h3>
-        <ul>
-          {meta.facets.map((facet) => {
-            const selectedBucketIds = selectedFacets.get(facet.name) || [];
-
-            switch (facet.config.type) {
-              case NUMBER_FACET_TYPE:
-                return <NumberFacetComp facet={facet} selectedRanges={selectedBucketIds} onChange={onFacetChange}
-                                        key={facet.name} />;
-              case STRING_FACET_TYPE:
-                return <StringFacet facet={facet} selectedBucketIds={selectedBucketIds} onChange={onFacetChange}
-                                    key={facet.name} />;
-              default:
-                console.warn(`Unknown facet type: ${facet.config.type}`);
-            }
-          })}
-        </ul>
-
-        <h3>Search results</h3>
-
-        {!searchResults.length ? 'No results' : <ul>
-          {searchResults.map((searchResult: any) => {
-            return <li key={searchResult._id}>
-              <SearchResult searchResult={searchResult} designDefinition={designDefinition} />
-            </li>;
-          })}
-        </ul>}
+            {!searchResults.length ? <NoResultsComp /> :
+                <SearchResultsComp searchResults={searchResults} designDefinition={designDefinition} />}
+          </div>
+        </div>
 
         <h3>Meta</h3>
         <pre>

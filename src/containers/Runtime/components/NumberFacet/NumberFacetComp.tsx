@@ -1,17 +1,21 @@
 import { MetaFacetResponse } from '../../../../pages/api/search';
 import { NumberFacet } from '../../../../pipeline/pipeline-types';
+import { prettifyName } from '../../../../utils/string';
+import styles from '../StringFacet/StringFacet.module.css';
+import Checkbox from '@leafygreen-ui/checkbox';
 
 export interface NumberFacetProps {
   facet: MetaFacetResponse;
   selectedRanges: Array<[number, number]>;
   onChange: (facetName: string, selectedBucketIds: Array<[number, number]>) => void;
+  className?: string;
 }
 
 const stringifyRange = (range: [number, number]): string => {
   return `${range[0]} - ${range[1]}`;
 };
 
-export const NumberFacetComp = ({ facet, selectedRanges, onChange }: NumberFacetProps) => {
+export const NumberFacetComp = ({ facet, selectedRanges, onChange, className }: NumberFacetProps) => {
   const handleCheck = (range: [number, number], isChecked: boolean) => {
     let newSelectedRanges = [...selectedRanges];
     if (isChecked) {
@@ -56,20 +60,30 @@ export const NumberFacetComp = ({ facet, selectedRanges, onChange }: NumberFacet
     maxIndex++;
   }
 
-  return <div>
-    <h4>{facet.name}</h4>
+  return <div className={className}>
+    <p className={styles.facetName}>{prettifyName(facet.name)}</p>
 
     <form>
-      <ul>
+      <ul className={styles.list}>
         {checkboxes.map((config) => {
           const title = `${config.minValue}-${config.maxValue}`;
 
-          return <li key={title}>
-            <label>
-              {title} ({config.count})
-              <input type="checkbox" checked={config.isChecked} disabled={config.count === 0} onChange={(event) => {
-                handleCheck([config.minValue, config.maxValue], event.target.checked);
-              }} />
+          return <li key={title} className={styles.listItem}>
+            <label className={styles.labelWrapper}>
+              <Checkbox
+                  onChange={(event) => {
+                    handleCheck([config.minValue, config.maxValue], event.target.checked);
+                  }}
+                  label=""
+                  checked={config.isChecked}
+                  disabled={config.count === 0}
+                  bold={false}
+              />
+
+              <div className={styles.labelName}>
+                <span>{title}</span>
+                <span className={styles.facetCount}>{config.count}</span>
+              </div>
             </label>
           </li>;
         })}

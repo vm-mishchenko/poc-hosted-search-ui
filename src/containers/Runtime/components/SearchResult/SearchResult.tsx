@@ -84,10 +84,11 @@ const getSearchResultObject = (searchResult: Record<string, any>, designDefiniti
 export interface SearchResultProps {
   searchResult: Record<string, any>;
   designDefinition: DesignDefinition;
+  className?: string;
 }
 
-export const SearchResult = ({ searchResult, designDefinition }: SearchResultProps) => {
-  return <div>
+export const SearchResult = ({ searchResult, designDefinition, className }: SearchResultProps) => {
+  return <div className={className}>
     {titleUI(searchResult, designDefinition)}
 
     <pre>

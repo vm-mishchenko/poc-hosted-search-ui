@@ -1,0 +1,15 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.label {
+  margin-right: 6px;
+  font-size: 13px;
+}
+
+.select {
+  min-width: 200px;
+
+}

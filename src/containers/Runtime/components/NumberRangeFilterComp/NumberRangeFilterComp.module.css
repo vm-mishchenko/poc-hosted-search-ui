@@ -1,0 +1,16 @@
+.filterName {
+  color: #889397;
+  text-transform: uppercase;
+}
+
+.inputWrapper {
+  display: flex;
+}
+
+.minInput {
+  margin-right: 12px;
+}
+
+.errorMessage {
+  color: #DB3030;
+}
