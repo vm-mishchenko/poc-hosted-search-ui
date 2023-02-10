@@ -1,6 +1,8 @@
 .filterName {
   color: #889397;
   text-transform: uppercase;
+  font-size: 13px;
+  margin: 0 0 10px 0;
 }
 
 .inputWrapper {

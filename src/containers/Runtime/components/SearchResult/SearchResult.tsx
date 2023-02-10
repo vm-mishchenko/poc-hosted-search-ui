@@ -3,6 +3,7 @@ import {
   DesignDefinition,
   URL_FIELD_NAME_VARIABLE,
 } from '../../../../designDefinition/types/designDefinition';
+import styles from './SearchResult.module.css';
 
 const DEFAULT_TITLE_FIELD_NAME = '_id';
 
@@ -41,14 +42,14 @@ const titleUI = (searchResult: Record<string, any>, designDefinition: DesignDefi
   const url = getSearchResultUrl(searchResult, designDefinition);
 
   if (!url) {
-    return <p>
+    return <p className={styles.title}>
       <b>
         {searchResult[titleFieldName]}
       </b>
     </p>;
   }
 
-  return <p>
+  return <p className={styles.title}>
     <b>
       <a href={url} target="_blank" rel="noreferrer">{searchResult[titleFieldName]}</a>
     </b>
@@ -61,7 +62,7 @@ const resolvePath = (object: Record<string, any>, path: string, defaultValue: an
       .reduce((o, p) => o ? o[p] : defaultValue, object);
 };
 
-const getSearchResultObject = (searchResult: Record<string, any>, designDefinition: DesignDefinition) => {
+const getSearchResultObject = (searchResult: Record<string, any>, designDefinition: DesignDefinition): Record<string, any> => {
   const fieldNamesToRender = designDefinition.ui.docFieldNamesToRender ? designDefinition.ui.docFieldNamesToRender : [];
 
   if (!fieldNamesToRender.length) {
@@ -88,11 +89,16 @@ export interface SearchResultProps {
 }
 
 export const SearchResult = ({ searchResult, designDefinition, className }: SearchResultProps) => {
-  return <div className={className}>
+  const result = getSearchResultObject(searchResult, designDefinition);
+
+  return <div className={`${className} ${styles.wrapper}`}>
     {titleUI(searchResult, designDefinition)}
 
-    <pre>
-      {JSON.stringify(getSearchResultObject(searchResult, designDefinition), null, 2)}
-    </pre>
+    {Object.keys(result).map((key) => {
+      return <p className={styles.resultLine} key={key}>
+        <span className={styles.keyName}>"{key}":</span>
+        <span className={styles.keyValue}>{result[key]}</span>
+      </p>;
+    })}
   </div>;
 };

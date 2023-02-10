@@ -19,7 +19,7 @@ import { SortRequest } from '../../apiTypes/searchTypes';
 import TextInput from '@leafygreen-ui/text-input';
 import styles from './Runtime.module.css';
 import { SortComp } from './components/SortComp/SortComp';
-import { ResultsCountComp } from './components/ResultNumberComp/ResultsCountComp';
+import { ResultsCountComp } from './components/ResultCountComp/ResultsCountComp';
 import { SearchResultsComp } from './components/SearchResultsComp/SearchResultsComp';
 import { NoResultsComp } from './components/NoResultsComp/NoResultsComp';
 
@@ -89,9 +89,7 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
   }, [searchQuery, selectedFacets, selectedFilters, selectedSort, designDefinition]);
 
   return (
-      <div>
-        <h2>Runtime</h2>
-
+      <div className={styles.wrapper}>
         <header className={styles.header}>
           <TextInput
               label={''}
@@ -108,6 +106,22 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
         <div className={styles.contentWrapper}>
           <div className={styles.sidebar}>
             <div>
+              {designDefinition.filters.map((filter) => {
+                const filterKey = `${filter.type}-${filter.path}`;
+                const selectedFilterValues = selectedFilters.get(filterKey) || {};
+                return <NumberRangeFilterComp
+                    onChange={(value) => {
+                      onFilterChange(filterKey, value);
+                    }}
+                    selectedFilters={selectedFilterValues}
+                    key={filterKey}
+                    filter={filter}
+                    className={styles.filter}
+                />;
+              })}
+            </div>
+
+            <div>
               {meta.facets.map((facet) => {
                 const selectedBucketIds = selectedFacets.get(facet.name) || [];
 
@@ -121,22 +135,6 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
                   default:
                     console.warn(`Unknown facet type: ${facet.config.type}`);
                 }
-              })}
-            </div>
-
-            <div>
-              {designDefinition.filters.map((filter) => {
-                const filterKey = `${filter.type}-${filter.path}`;
-                const selectedFilterValues = selectedFilters.get(filterKey) || {};
-                return <NumberRangeFilterComp
-                    onChange={(value) => {
-                      onFilterChange(filterKey, value);
-                    }}
-                    selectedFilters={selectedFilterValues}
-                    key={filterKey}
-                    filter={filter}
-                    className={styles.filter}
-                />;
               })}
             </div>
           </div>
@@ -158,15 +156,15 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
           </div>
         </div>
 
-        <h3>Meta</h3>
-        <pre>
-          {JSON.stringify(meta, null, 2)}
-        </pre>
+        {/*<h3>Meta</h3>*/}
+        {/*<pre>*/}
+        {/*  {JSON.stringify(meta, null, 2)}*/}
+        {/*</pre>*/}
 
-        <h3>Actual pipeline</h3>
-        <pre>
-          {JSON.stringify(actualPipeline, null, 2)}
-        </pre>
+        {/*<h3>Actual pipeline</h3>*/}
+        {/*<pre>*/}
+        {/*  {JSON.stringify(actualPipeline, null, 2)}*/}
+        {/*</pre>*/}
       </div>
   );
 };

@@ -1,31 +1,39 @@
+.wrapper {
+  /*background: #F9FBFA;*/
+  height: 100%;
+  overflow-y: scroll;
+}
+
 .contentWrapper {
   display: flex;
 }
 
 .main {
   flex-grow: 1;
-  padding: 10px;
+  padding: 20px;
 }
 
 .sidebar {
-  flex-basis: 30%;
-  padding: 10px;
+  flex-basis: 200px;
+  flex-shrink: 0;
+  padding: 32px 20px 20px 20px;
 }
 
 .header {
-  padding: 10px;
+  padding: 20px 20px 0 20px;
 }
 
 .resultsHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 10px;
 }
 
 .facet {
-  margin-bottom: 32px;
+  margin-bottom: 35px;
 }
 
 .filter {
-  margin-bottom: 32px;
+  margin-bottom: 35px;
 }

@@ -1,6 +1,8 @@
 .facetName {
   color: #889397;
   text-transform: uppercase;
+  font-size: 13px;
+  margin: 0 0 15px 0;
 }
 
 .list {
@@ -24,6 +26,7 @@
   margin: 0;
   justify-content: space-between;
   cursor: pointer;
+  font-size: 13px;
 }
 
 .facetCount {
