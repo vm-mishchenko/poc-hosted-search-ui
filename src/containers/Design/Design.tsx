@@ -128,8 +128,7 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
         darkMode={true}
     >
       <Banner className={styles.searchPipelineTitle}>
-        <Badge variant="lightgray">$$SEARCH_QUERY</Badge> variable will be replaced with the user search query in
-        Runtime.
+        <Badge variant="lightgray">$$SEARCH_QUERY</Badge> variable represents user search query.
       </Banner>
 
       <Editor
@@ -173,16 +172,16 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
             setSort(event.target.value ? event.target.value.split(', ') : []);
           }}
           value={sort?.join(', ')}
+          autoComplete={'off'}
       />
     </ExpandableCard>
 
     <ExpandableCard
-        title="Search Result UI"
+        title="Search Result Fields"
         description="Configure how search results will be rendered"
         className={styles.card}
         darkMode={true}
     >
-      <h3>Fields</h3>
       <TextInput
           label="Title field name"
           description="Document field name that will serve as Search result title"
@@ -194,62 +193,71 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
             });
           }}
           value={ui.docTitleFieldName}
+          autoComplete={'off'}
+          className={styles.input}
       />
-      <p>
-        <TextInput
-            label="Fields to render"
-            description="List of documents field to render"
-            placeholder="name1, name2, ..."
-            onChange={event => {
-              setUI({
-                ...ui,
-                docFieldNamesToRender: event.target.value ? event.target.value.split(', ') : [],
-              });
-            }}
-            value={ui.docFieldNamesToRender?.join(', ')}
-        />
-      </p>
+      <TextInput
+          label="Fields to render"
+          description="List of documents field to render"
+          placeholder="name1, name2, ..."
+          autoComplete={'off'}
+          onChange={event => {
+            setUI({
+              ...ui,
+              docFieldNamesToRender: event.target.value ? event.target.value.split(', ') : [],
+            });
+          }}
+          value={ui.docFieldNamesToRender?.join(', ')}
+          className={styles.input}
+      />
+    </ExpandableCard>
 
-      <h3>URL</h3>
-      <p>
-        Use <Badge variant="lightgray">$$URL_FIELD_NAME</Badge> variable as a placeholder that will be replaced with the
-        document field value in Runtime.
-      </p>
+    <ExpandableCard
+        title="Search Result URL"
+        description="Configure how search results will be rendered"
+        className={styles.card}
+        darkMode={true}
+    >
+      <Banner className={styles.searchPipelineTitle}>
+        <Badge variant="lightgray">$$URL_FIELD_NAME</Badge> variable represents document field value, e.g.
 
-      <p>
-        <TextInput
-            label="URL template"
-            description="URL template for a search results, e.g. https://www.google.com/search?q=$$URL_FIELD_NAME"
-            placeholder="https://www.google.com/searchq=$$URL_FIELD_NAME"
-            onChange={event => {
-              setUI({
-                ...ui,
-                url: {
-                  ...ui.url,
-                  template: event.target.value,
-                },
-              });
-            }}
-            value={ui.url?.template}
-        />
-      </p>
-      <p>
-        <TextInput
-            label="Field name for $$URL_FIELD_NAME"
-            description="Specify document field name that replace $$URL_FIELD_NAME in Runtime"
-            placeholder="Field name"
-            onChange={event => {
-              setUI({
-                ...ui,
-                url: {
-                  ...ui.url!,
-                  docFieldName: event.target.value,
-                },
-              });
-            }}
-            value={ui.url?.docFieldName}
-        />
-      </p>
+        <p>https://www.google.com/search?q=$$URL_FIELD_NAME</p>
+      </Banner>
+
+      <TextInput
+          label="URL template"
+          description="URL template for a search results"
+          placeholder="https://www.google.com/searchq=$$URL_FIELD_NAME"
+          onChange={event => {
+            setUI({
+              ...ui,
+              url: {
+                ...ui.url,
+                template: event.target.value,
+              },
+            });
+          }}
+          value={ui.url?.template}
+          autoComplete={'off'}
+          className={styles.input}
+      />
+      <TextInput
+          label="Field name for $$URL_FIELD_NAME"
+          description="Specify document field name that replace $$URL_FIELD_NAME in Runtime"
+          placeholder="Field name"
+          onChange={event => {
+            setUI({
+              ...ui,
+              url: {
+                ...ui.url!,
+                docFieldName: event.target.value,
+              },
+            });
+          }}
+          value={ui.url?.docFieldName}
+          autoComplete={'off'}
+          className={styles.input}
+      />
     </ExpandableCard>
 
     <ExpandableCard

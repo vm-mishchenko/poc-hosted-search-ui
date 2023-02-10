@@ -59,6 +59,7 @@ export const NumberRangeFilterComp = ({ filter, selectedFilters, onChange, class
           type="number"
           value={selectedFilters.min === undefined ? '' : `${selectedFilters.min}`}
           className={styles.minInput}
+          autoComplete={'off'}
       />
 
       <TextInput
@@ -82,6 +83,7 @@ export const NumberRangeFilterComp = ({ filter, selectedFilters, onChange, class
             }
           }}
           type="number"
+          autoComplete={'off'}
           value={selectedFilters.max === undefined ? '' : `${selectedFilters.max}`}
       />
     </div>
