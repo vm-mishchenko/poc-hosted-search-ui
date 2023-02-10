@@ -20,6 +20,7 @@
 }
 
 .header {
+  position: relative;
   padding: 20px 20px 0 20px;
 }
 
@@ -36,4 +37,14 @@
 
 .filter {
   margin-bottom: 35px;
+}
+
+.loadingDot {
+  position: absolute;
+  top: 39px;
+  left: 34px;
+}
+
+.searchInput input {
+  padding-left: 36px;
 }

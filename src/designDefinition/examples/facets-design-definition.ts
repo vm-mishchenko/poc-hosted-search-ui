@@ -50,6 +50,7 @@ export const facetsDesignDefinition: DesignDefinition = {
     },
   ],
   "filters": [],
+  "sort": [],
   "ui": {
     "docFieldNamesToRender": [
       "name",

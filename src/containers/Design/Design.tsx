@@ -17,6 +17,7 @@ import styles from './Design.module.css';
 import TextInput from '@leafygreen-ui/text-input';
 import Button from '@leafygreen-ui/button';
 import { encode } from '../../utils/base64';
+import { DesignFilterComp } from './components/DesignFilterComp/DesignFilterComp';
 
 export interface DesignProps {
   designDefinition: DesignDefinition;
@@ -57,7 +58,7 @@ const buildDesignDefinition = (pipeline: Document[], filters: NumberRangeFilter[
       "collectionName": "listingsAndReviews",
     },
     pipeline,
-    filters,
+    filters: filters.filter((filter) => filter.path.trim().length > 0),
     sort,
     ui,
   };
@@ -84,15 +85,8 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
     }
   };
 
-  const onFilterChange = (filtersAsString: string = "{}") => {
-    setError('');
-
-    try {
-      const filters = JSON.parse(filtersAsString);
-      setFilters(filters);
-    } catch (e) {
-      setError('Cannot parse Aggregation pipeline.');
-    }
+  const onFilterChange = (newFilters: NumberRangeFilter[]) => {
+    setFilters(newFilters);
   };
 
   const openRuntime = () => {
@@ -148,14 +142,7 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
         className={styles.card}
         darkMode={true}
     >
-      <Editor
-          height="300px"
-          width={"99%"}
-          defaultLanguage="json"
-          onChange={onFilterChange}
-          theme={'vs-dark'}
-          value={JSON.stringify(filters, null, 2)}
-      />
+      <DesignFilterComp filters={filters} onChanged={onFilterChange} />
     </ExpandableCard>
 
     <ExpandableCard

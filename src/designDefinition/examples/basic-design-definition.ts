@@ -22,6 +22,7 @@ export const basicDesignDefinition: DesignDefinition = {
     },
   ],
   "filters": [],
+  "sort": [],
   "ui": {
     "docFieldNamesToRender": [
       "name",

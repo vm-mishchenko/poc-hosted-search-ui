@@ -22,6 +22,7 @@ import { SortComp } from './components/SortComp/SortComp';
 import { ResultsCountComp } from './components/ResultCountComp/ResultsCountComp';
 import { SearchResultsComp } from './components/SearchResultsComp/SearchResultsComp';
 import { NoResultsComp } from './components/NoResultsComp/NoResultsComp';
+import { LoadingDotComp } from './components/LoadingDotComp/LoadingDotComp';
 
 
 export interface RuntimeProps {
@@ -38,7 +39,7 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
   const [meta, setMeta] = useState<MetaResponse>({
     facets: [],
   });
-  const [loading, setLoading] = useState(false);
+  const [requestsInFlight, setRequestsInFlight] = useState(0);
   const [errorResponseMessage, setErrorResponseMessage] = useState('');
 
   const onFacetChange = (facetName: string, selectedBucketIds: any[]) => {
@@ -74,8 +75,10 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
 
   // Run search request
   useEffect(() => {
+    setRequestsInFlight((currentFlights) => {
+      return currentFlights + 1;
+    });
     // todo-vm: clear selected facets when searchQuery was changed
-    setLoading(true);
     setErrorResponseMessage('');
     search(searchQuery, selectedFacets, selectedFilters, selectedSort, designDefinition).then((searchResponse) => {
       setSearchResults(searchResponse.docs);
@@ -84,7 +87,9 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
     }).catch((error: SearchErrorResponse) => {
       setErrorResponseMessage(error.errorMessage);
     }).finally(() => {
-      setLoading(false);
+      setRequestsInFlight((currentFlights) => {
+        return currentFlights - 1;
+      });
     });
   }, [searchQuery, selectedFacets, selectedFilters, selectedSort, designDefinition]);
 
@@ -102,7 +107,9 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
               value={searchQuery}
               autoFocus={true}
               autoComplete="off"
+              className={styles.searchInput}
           />
+          <LoadingDotComp className={styles.loadingDot} requestsInFlight={requestsInFlight} />
         </header>
 
         <div className={styles.contentWrapper}>
@@ -153,7 +160,9 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
               Error: {errorResponseMessage}
             </p>}
 
-            {!searchResults.length ? <NoResultsComp /> :
+            {!searchResults.length && requestsInFlight > 0 ? 'Loading...' : ''}
+
+            {!searchResults.length && requestsInFlight === 0 ? <NoResultsComp /> :
                 <SearchResultsComp searchResults={searchResults} designDefinition={designDefinition} />}
           </div>
         </div>

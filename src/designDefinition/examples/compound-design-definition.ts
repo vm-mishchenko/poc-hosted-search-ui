@@ -28,6 +28,7 @@ export const compoundDesignDefinition: DesignDefinition = {
     },
   ],
   "filters": [],
+  "sort": [],
   "ui": {
     "docFieldNamesToRender": [],
     "docTitleFieldName": "",
