@@ -15,6 +15,8 @@ import Banner from '@leafygreen-ui/banner';
 import Badge from '@leafygreen-ui/badge';
 import styles from './Design.module.css';
 import TextInput from '@leafygreen-ui/text-input';
+import Button from '@leafygreen-ui/button';
+import { encode } from '../../utils/base64';
 
 export interface DesignProps {
   designDefinition: DesignDefinition;
@@ -93,6 +95,12 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
     }
   };
 
+  const openRuntime = () => {
+    const newDesignDefinition = buildDesignDefinition(pipeline, filters, sort, ui);
+    const encodedDesignDefinition = encode(JSON.stringify(newDesignDefinition));
+    window.open(`share?designDefinition=${encodedDesignDefinition}`, '_blank');
+  };
+
   useEffect(() => {
     const newDesignDefinition = buildDesignDefinition(pipeline, filters, sort, ui);
     const error = validateDesignDefinition(newDesignDefinition);
@@ -105,23 +113,31 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
     onChange(newDesignDefinition);
   }, [pipeline, ui, filters, sort]);
 
-  return <div>
-    <h2 className={styles.aggregationDescription}>Design time</h2>
+  return <div className={styles.wrapper}>
+    <div className={styles.header}>
+      <h2 className={styles.title}>Design search interface</h2>
+      <Button variant={'primary'} darkMode={true} onClick={openRuntime} disabled={error.length > 0}>
+        Open Search
+      </Button>
+    </div>
 
     <ExpandableCard
         title="Search pipeline"
         description="Should return search result documents. Can have any stages."
-        className={styles.aggregationCard}
+        className={styles.card}
+        darkMode={true}
     >
-      <p className={styles.aggregationDescription}>
+      <Banner className={styles.searchPipelineTitle}>
         <Badge variant="lightgray">$$SEARCH_QUERY</Badge> variable will be replaced with the user search query in
         Runtime.
-      </p>
+      </Banner>
+
       <Editor
           height="500px"
           width={"99%"}
           defaultLanguage="json"
           onChange={onPipelineChange}
+          theme={'vs-dark'}
           value={JSON.stringify(pipeline, null, 2)}
       />
       {error && <Banner variant="danger">{error}</Banner>}
@@ -130,12 +146,15 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
     <ExpandableCard
         title="Filters"
         description="Configure search filters"
+        className={styles.card}
+        darkMode={true}
     >
       <Editor
           height="300px"
           width={"99%"}
           defaultLanguage="json"
           onChange={onFilterChange}
+          theme={'vs-dark'}
           value={JSON.stringify(filters, null, 2)}
       />
     </ExpandableCard>
@@ -143,6 +162,8 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
     <ExpandableCard
         title="Sort"
         description="Configure sort fields"
+        className={styles.card}
+        darkMode={true}
     >
       <TextInput
           label="Sort fields"
@@ -158,6 +179,8 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
     <ExpandableCard
         title="Search Result UI"
         description="Configure how search results will be rendered"
+        className={styles.card}
+        darkMode={true}
     >
       <h3>Fields</h3>
       <TextInput
@@ -232,6 +255,8 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
     <ExpandableCard
         title="Index Definition"
         description="Configure how search results will be rendered"
+        className={styles.card}
+        darkMode={true}
     >
       <pre>
           {JSON.stringify(indexDefinition, null, 2)}
@@ -241,11 +266,14 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
     <ExpandableCard
         title="Design definition"
         description="Resulted Design Definition"
+        className={styles.card}
+        darkMode={true}
     >
       <Editor
           height="500px"
           width={"99%"}
           defaultLanguage="json"
+          theme={'vs-dark'}
           value={JSON.stringify(designDefinition, null, 2)}
       />
     </ExpandableCard>

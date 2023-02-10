@@ -1,16 +1,36 @@
+.wrapper {
+  background: #1C2D38;
+  height: 100%;
+  overflow-y: scroll;
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
+  color: white;
+}
+
+.title {
+  margin: 0;
+}
+
+.card {
+  margin-bottom: 20px;
+}
+
+.searchPipelineTitle {
+  margin: 0 0 15px 0;
+}
+
 .textarea {
   width: 100%;
   height: 400px;
   max-height: 400px;
 }
 
-/* Card*/
-.headerInsideCard {
-  
-}
-
 /* Aggregation Card*/
-.aggregationDescription {
-  margin: 0 0 16px 0;
-}
+
 

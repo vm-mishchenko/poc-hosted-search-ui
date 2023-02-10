@@ -100,6 +100,7 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
               }}
               type="search"
               value={searchQuery}
+              autoFocus={true}
           />
         </header>
 
