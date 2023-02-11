@@ -8,3 +8,8 @@
 
 service:
   targetPort: 3000
+
+envSecrets:
+  DB_USER: my-secrets
+  DB_PASSWORD: my-secrets
+  DB_CONNECTION: my-secrets

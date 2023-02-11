@@ -8,7 +8,11 @@
 
 ## implement for poc:
 - show actual pipeline in runtime
+- provide some pre-configured pipeline examples
 - explain to which cluster UI is connected now
+- show error propertly
+    - in design time
+    - in runtime
 - search pipeline
     - add button to quickly transform search query to:
         - compound

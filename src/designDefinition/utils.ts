@@ -1,6 +1,7 @@
 import {
   DesignDefinition,
-  SEARCH_QUERY_VARIABLE,
+  NumberRangeFilter,
+  UIDesignDefinition,
 } from './types/designDefinition';
 import { getSearchStageFromPipeline } from '../pipeline/pipeline';
 import {
@@ -10,42 +11,19 @@ import {
   SearchStage,
   StringFacet,
 } from '../pipeline/pipeline-types';
+import { Document } from 'mongodb';
 
-export const getDefaultDesignDefinition = (): DesignDefinition => {
+export const buildDesignDefinition = (pipeline: Document[], filters: NumberRangeFilter[], sort: Array<string>, ui: UIDesignDefinition): DesignDefinition => {
   return {
     searchIndex: {
-      name: 'default',
-      databaseName: 'sample_airbnb',
-      collectionName: 'listingsAndReviews',
+      name: "facets",
+      databaseName: "sample_airbnb",
+      collectionName: "listingsAndReviews",
     },
-
-    pipeline: [
-      {
-        $search: {
-          text: {
-            query: SEARCH_QUERY_VARIABLE,
-            path: {
-              wildcard: "*",
-            },
-          },
-        },
-      },
-      {
-        $limit: 10,
-      },
-    ],
-
-    filters: [],
-    sort: [],
-
-    ui: {
-      docFieldNamesToRender: [],
-      docTitleFieldName: '',
-      url: {
-        docFieldName: '',
-        template: '',
-      },
-    },
+    pipeline,
+    filters,
+    sort,
+    ui,
   };
 };
 

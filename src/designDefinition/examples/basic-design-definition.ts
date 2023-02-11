@@ -1,37 +1,40 @@
-import { DesignDefinition } from '../types/designDefinition';
+import { buildDesignDefinition } from '../utils';
+import {
+  NumberRangeFilter,
+  UIDesignDefinition,
+} from '../types/designDefinition';
+import { Document } from 'mongodb';
 
-export const basicDesignDefinition: DesignDefinition = {
-  "searchIndex": {
-    "name": "facets",
-    "databaseName": "sample_airbnb",
-    "collectionName": "listingsAndReviews",
-  },
-  "pipeline": [
-    {
-      "$search": {
-        "text": {
-          "query": "$$SEARCH_QUERY",
-          "path": {
-            "wildcard": "*",
-          },
+const pipeline: Document[] = [
+  {
+    "$search": {
+      "text": {
+        "query": "$$SEARCH_QUERY",
+        "path": {
+          "wildcard": "*",
         },
       },
     },
-    {
-      "$limit": 10,
-    },
+  },
+  {
+    "$limit": 10,
+  },
+];
+
+const filters: NumberRangeFilter[] = [];
+
+const sort: string[] = [];
+
+const ui: UIDesignDefinition = {
+  "docFieldNamesToRender": [
+    "name",
+    "description",
   ],
-  "filters": [],
-  "sort": [],
-  "ui": {
-    "docFieldNamesToRender": [
-      "name",
-      "description",
-    ],
-    "docTitleFieldName": "",
-    "url": {
-      "docFieldName": "",
-      "template": "",
-    },
+  "docTitleFieldName": "",
+  "url": {
+    "docFieldName": "",
+    "template": "",
   },
 };
+
+export const basicDesignDefinition = buildDesignDefinition(pipeline, filters, sort, ui);

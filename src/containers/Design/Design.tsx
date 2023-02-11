@@ -7,7 +7,10 @@ import {
   NumberRangeFilter,
   UIDesignDefinition,
 } from '../../designDefinition/types/designDefinition';
-import { validateDesignDefinition } from '../../designDefinition/utils';
+import {
+  buildDesignDefinition,
+  validateDesignDefinition,
+} from '../../designDefinition/utils';
 import ExpandableCard from '@leafygreen-ui/expandable-card';
 import Editor from '@monaco-editor/react';
 import { Document } from 'mongodb';
@@ -50,18 +53,15 @@ const indexDefinition = {
   },
 };
 
-const buildDesignDefinition = (pipeline: Document[], filters: NumberRangeFilter[], sort: Array<string>, ui: UIDesignDefinition): DesignDefinition => {
-  return {
-    "searchIndex": {
-      "name": "facets",
-      "databaseName": "sample_airbnb",
-      "collectionName": "listingsAndReviews",
-    },
-    pipeline,
-    filters: filters.filter((filter) => filter.path.trim().length > 0),
-    sort,
-    ui,
-  };
+const buildDesignDefinitionInternal = (pipeline: Document[], filters: NumberRangeFilter[], sort: Array<string>, ui: UIDesignDefinition): DesignDefinition => {
+  const validFilters = filters.filter((filter) => filter.path.trim().length > 0);
+
+  return buildDesignDefinition(
+      pipeline,
+      validFilters,
+      sort,
+      ui,
+  );
 };
 
 /**
@@ -90,13 +90,13 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
   };
 
   const openRuntime = () => {
-    const newDesignDefinition = buildDesignDefinition(pipeline, filters, sort, ui);
+    const newDesignDefinition = buildDesignDefinitionInternal(pipeline, filters, sort, ui);
     const encodedDesignDefinition = encode(JSON.stringify(newDesignDefinition));
     window.open(`share?designDefinition=${encodedDesignDefinition}`, '_blank');
   };
 
   useEffect(() => {
-    const newDesignDefinition = buildDesignDefinition(pipeline, filters, sort, ui);
+    const newDesignDefinition = buildDesignDefinitionInternal(pipeline, filters, sort, ui);
     const error = validateDesignDefinition(newDesignDefinition);
 
     if (error) {
