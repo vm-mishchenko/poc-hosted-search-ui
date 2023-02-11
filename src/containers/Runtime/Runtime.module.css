@@ -48,3 +48,28 @@
 .searchInput input {
   padding-left: 36px;
 }
+
+.pipelineBtn {
+  position: absolute;
+  right: 32px;
+  top: 30px;
+}
+
+.pipelineBtnActive,
+.pipelineBtnActive:hover,
+.pipelineBtnActive:focus {
+  color: #00A35C;
+}
+
+.pipelineWrapper {
+  padding: 10px 20px 10px 20px;
+}
+
+.pipelineWrapper p {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+}
+
+.pipelineWrapper pre {
+  max-height: 300px;
+}

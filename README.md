@@ -7,10 +7,9 @@
     - ![img.png](docs/img/search-box-category.png)
 
 ## implement for poc:
-- show actual pipeline in runtime
 - provide some pre-configured pipeline examples
 - explain to which cluster UI is connected now
-- show error propertly
+- show error properly
     - in design time
     - in runtime
 - search pipeline

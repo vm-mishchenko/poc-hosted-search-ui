@@ -23,6 +23,9 @@ import { ResultsCountComp } from './components/ResultCountComp/ResultsCountComp'
 import { SearchResultsComp } from './components/SearchResultsComp/SearchResultsComp';
 import { NoResultsComp } from './components/NoResultsComp/NoResultsComp';
 import { LoadingDotComp } from './components/LoadingDotComp/LoadingDotComp';
+import Icon from '@leafygreen-ui/icon';
+import IconButton from '@leafygreen-ui/icon-button';
+import { Code } from '@leafygreen-ui/code';
 
 
 export interface RuntimeProps {
@@ -36,6 +39,7 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
   const [selectedSort, setSelectedSort] = useState<SortRequest | null>(null);
   const [searchResults, setSearchResults] = useState<Array<Record<string, any>>>([]);
   const [actualPipeline, setActualPipeline] = useState({});
+  const [showPipeline, setShowPipeline] = useState(false);
   const [meta, setMeta] = useState<MetaResponse>({
     facets: [],
   });
@@ -93,6 +97,10 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
     });
   }, [searchQuery, selectedFacets, selectedFilters, selectedSort, designDefinition]);
 
+  const switchPipeline = () => {
+    setShowPipeline(!showPipeline);
+  };
+
   return (
       <div className={styles.wrapper}>
         <header className={styles.header}>
@@ -110,7 +118,22 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
               className={styles.searchInput}
           />
           <LoadingDotComp className={styles.loadingDot} requestsInFlight={requestsInFlight} />
+
+          <IconButton title={`${showPipeline ? 'Hide pipeline' : 'Show pipeline'}`}
+                      aria-label={`${showPipeline ? 'Hide pipeline' : 'Show pipeline'}`}
+                      onClick={switchPipeline}
+                      className={`${styles.pipelineBtn} ${showPipeline && styles.pipelineBtnActive}`}>
+            <Icon glyph="InfoWithCircle" />
+          </IconButton>
         </header>
+
+        {showPipeline && <div className={styles.pipelineWrapper}>
+          <p>Aggregation pipeline:</p>
+          {/*@ts-ignore*/}
+          <Code language={'JSON'}>
+            {JSON.stringify(actualPipeline, null, 2)}
+          </Code>
+        </div>}
 
         <div className={styles.contentWrapper}>
           <div className={styles.sidebar}>
