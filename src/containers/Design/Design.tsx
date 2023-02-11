@@ -21,6 +21,11 @@ import TextInput from '@leafygreen-ui/text-input';
 import Button from '@leafygreen-ui/button';
 import { encode } from '../../utils/base64';
 import { DesignFilterComp } from './components/DesignFilterComp/DesignFilterComp';
+import {
+  Tab,
+  Tabs,
+} from '@leafygreen-ui/tabs';
+import Code from '@leafygreen-ui/code';
 
 export interface DesignProps {
   designDefinition: DesignDefinition;
@@ -73,6 +78,7 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
   const [pipeline, setPipeline] = useState<Document[]>(designDefinition.pipeline);
   const [filters, setFilters] = useState<NumberRangeFilter[]>(designDefinition.filters);
   const [sort, setSort] = useState<Array<string>>(designDefinition.sort);
+  const [selected, setSelected] = useState(0);
 
   const onPipelineChange = (newPipelineAsString: string = "{}") => {
     setError('');
@@ -115,163 +121,153 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
       </Button>
     </div>
 
-    <ExpandableCard
-        title="Search pipeline"
-        description="Should return search result documents. Can have any stages."
-        className={styles.card}
-        darkMode={true}
-    >
-      <Banner className={styles.searchPipelineTitle}>
-        <Badge variant="lightgray">$$SEARCH_QUERY</Badge> variable represents user search query.
-      </Banner>
+    {/*@ts-ignore*/}
+    <Tabs setSelected={setSelected} selected={selected} darkMode={true}>
+      <Tab name="Configuration">
+        <br />
+        <ExpandableCard
+            title="Search pipeline"
+            description="Should return search result documents. Can have any stages."
+            className={styles.card}
+            darkMode={true}
+        >
+          <Banner className={styles.searchPipelineTitle}>
+            <Badge variant="lightgray">$$SEARCH_QUERY</Badge> variable represents user search query.
+          </Banner>
 
-      <Editor
-          height="500px"
-          width={"99%"}
-          defaultLanguage="json"
-          onChange={onPipelineChange}
-          theme={'vs-dark'}
-          value={JSON.stringify(pipeline, null, 2)}
-      />
-      {error && <Banner variant="danger">{error}</Banner>}
-    </ExpandableCard>
+          <Editor
+              height="500px"
+              width={"99%"}
+              defaultLanguage="json"
+              onChange={onPipelineChange}
+              theme={'vs-dark'}
+              value={JSON.stringify(pipeline, null, 2)}
+          />
+          {error && <Banner variant="danger">{error}</Banner>}
+        </ExpandableCard>
 
-    <ExpandableCard
-        title="Filters"
-        description="Configure search filters"
-        className={styles.card}
-        darkMode={true}
-    >
-      <DesignFilterComp filters={filters} onChanged={onFilterChange} />
-    </ExpandableCard>
+        <ExpandableCard
+            title="Filters"
+            description="Configure search filters"
+            className={styles.card}
+            darkMode={true}
+        >
+          <DesignFilterComp filters={filters} onChanged={onFilterChange} />
+        </ExpandableCard>
 
-    <ExpandableCard
-        title="Sort"
-        description="Configure sort fields"
-        className={styles.card}
-        darkMode={true}
-    >
-      <TextInput
-          label="Sort fields"
-          description="List of document fields to sort on"
-          placeholder="name1, name2, ..."
-          onChange={event => {
-            setSort(event.target.value ? event.target.value.split(', ') : []);
-          }}
-          value={sort?.join(', ')}
-          autoComplete={'off'}
-      />
-    </ExpandableCard>
+        <ExpandableCard
+            title="Sort"
+            description="Configure sort fields"
+            className={styles.card}
+            darkMode={true}
+        >
+          <TextInput
+              label="Sort fields"
+              description="List of document fields to sort on"
+              placeholder="name1, name2, ..."
+              onChange={event => {
+                setSort(event.target.value ? event.target.value.split(', ') : []);
+              }}
+              value={sort?.join(', ')}
+              autoComplete={'off'}
+          />
+        </ExpandableCard>
 
-    <ExpandableCard
-        title="Search Result Fields"
-        description="Configure how search results will be rendered"
-        className={styles.card}
-        darkMode={true}
-    >
-      <TextInput
-          label="Title field name"
-          description="Document field name that will serve as Search result title"
-          placeholder="Document field name"
-          onChange={event => {
-            setUI({
-              ...ui,
-              docTitleFieldName: event.target.value,
-            });
-          }}
-          value={ui.docTitleFieldName}
-          autoComplete={'off'}
-          className={styles.input}
-      />
-      <TextInput
-          label="Fields to render"
-          description="List of documents field to render"
-          placeholder="name1, name2, ..."
-          autoComplete={'off'}
-          onChange={event => {
-            setUI({
-              ...ui,
-              docFieldNamesToRender: event.target.value ? event.target.value.split(', ') : [],
-            });
-          }}
-          value={ui.docFieldNamesToRender?.join(', ')}
-          className={styles.input}
-      />
-    </ExpandableCard>
+        <ExpandableCard
+            title="Search Result Fields"
+            description="Configure how search results will be rendered"
+            className={styles.card}
+            darkMode={true}
+        >
+          <TextInput
+              label="Title field name"
+              description="Document field name that will serve as Search result title"
+              placeholder="Document field name"
+              onChange={event => {
+                setUI({
+                  ...ui,
+                  docTitleFieldName: event.target.value,
+                });
+              }}
+              value={ui.docTitleFieldName}
+              autoComplete={'off'}
+              className={styles.input}
+          />
+          <TextInput
+              label="Fields to render"
+              description="List of documents field to render"
+              placeholder="name1, name2, ..."
+              autoComplete={'off'}
+              onChange={event => {
+                setUI({
+                  ...ui,
+                  docFieldNamesToRender: event.target.value ? event.target.value.split(', ') : [],
+                });
+              }}
+              value={ui.docFieldNamesToRender?.join(', ')}
+              className={styles.input}
+          />
+        </ExpandableCard>
 
-    <ExpandableCard
-        title="Search Result URL"
-        description="Configure how search results will be rendered"
-        className={styles.card}
-        darkMode={true}
-    >
-      <Banner className={styles.searchPipelineTitle}>
-        <Badge variant="lightgray">$$URL_FIELD_NAME</Badge> variable represents document field value, e.g.
+        <ExpandableCard
+            title="Search Result URL"
+            description="Configure how search results will be rendered"
+            className={styles.card}
+            darkMode={true}
+        >
+          <Banner className={styles.searchPipelineTitle}>
+            <Badge variant="lightgray">$$URL_FIELD_NAME</Badge> variable represents document field value, e.g.
 
-        <p>https://www.google.com/search?q=$$URL_FIELD_NAME</p>
-      </Banner>
+            <p>https://www.google.com/search?q=$$URL_FIELD_NAME</p>
+          </Banner>
 
-      <TextInput
-          label="URL template"
-          description="URL template for a search results"
-          placeholder="https://www.google.com/searchq=$$URL_FIELD_NAME"
-          onChange={event => {
-            setUI({
-              ...ui,
-              url: {
-                ...ui.url,
-                template: event.target.value,
-              },
-            });
-          }}
-          value={ui.url?.template}
-          autoComplete={'off'}
-          className={styles.input}
-      />
-      <TextInput
-          label="Field name for $$URL_FIELD_NAME"
-          description="Specify document field name that replace $$URL_FIELD_NAME in Runtime"
-          placeholder="Field name"
-          onChange={event => {
-            setUI({
-              ...ui,
-              url: {
-                ...ui.url!,
-                docFieldName: event.target.value,
-              },
-            });
-          }}
-          value={ui.url?.docFieldName}
-          autoComplete={'off'}
-          className={styles.input}
-      />
-    </ExpandableCard>
-
-    <ExpandableCard
-        title="Index Definition"
-        description="Configure how search results will be rendered"
-        className={styles.card}
-        darkMode={true}
-    >
-      <pre>
+          <TextInput
+              label="URL template"
+              description="URL template for a search results"
+              placeholder="https://www.google.com/searchq=$$URL_FIELD_NAME"
+              onChange={event => {
+                setUI({
+                  ...ui,
+                  url: {
+                    ...ui.url,
+                    template: event.target.value,
+                  },
+                });
+              }}
+              value={ui.url?.template}
+              autoComplete={'off'}
+              className={styles.input}
+          />
+          <TextInput
+              label="Field name for $$URL_FIELD_NAME"
+              description="Specify document field name that replace $$URL_FIELD_NAME in Runtime"
+              placeholder="Field name"
+              onChange={event => {
+                setUI({
+                  ...ui,
+                  url: {
+                    ...ui.url!,
+                    docFieldName: event.target.value,
+                  },
+                });
+              }}
+              value={ui.url?.docFieldName}
+              autoComplete={'off'}
+              className={styles.input}
+          />
+        </ExpandableCard>
+      </Tab>
+      <Tab name="Index Definition">
+        <br />
+        {/*@ts-ignore*/}
+        <Code darkMode={true} language={'JSON'}>
           {JSON.stringify(indexDefinition, null, 2)}
-        </pre>
-    </ExpandableCard>
-
-    <ExpandableCard
-        title="Design definition"
-        description="Resulted Design Definition"
-        className={styles.card}
-        darkMode={true}
-    >
-      <Editor
-          height="500px"
-          width={"99%"}
-          defaultLanguage="json"
-          theme={'vs-dark'}
-          value={JSON.stringify(designDefinition, null, 2)}
-      />
-    </ExpandableCard>
+        </Code>
+      </Tab>
+      <Tab name="About">
+        Hi there!
+      </Tab>
+    </Tabs>
 
     {error && <div>
       Error: {error}
