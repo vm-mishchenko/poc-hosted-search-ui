@@ -330,21 +330,29 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
       <Tab name="About">
         <br />
         <Banner>
-          App automatically builds Search UI based on provided aggregation pipeline and some additional metadata.
+          App builds Search UI based on aggregation pipeline and additional metadata.
+
+          <p></p>
 
           <p>
-            App assumes that Search index with the name "<strong>{designDefinition.searchIndex.name}</strong>" was
-            already
-            created
-            for <a
-              href="https://cloud.mongodb.com/v2/618c484956d6980855ec3229#/clusters/atlasSearch/vitalii-hosted-ui?collectionName=listingsAndReviews&database=sample_airbnb&indexName=facets&view=IndexOverview"
+            As the POC, the app is restricted to work with the pre-configured "
+            <a
+                href="https://cloud.mongodb.com/v2/618c484956d6980855ec3229#/clusters/atlasSearch/vitalii-hosted-ui?collectionName=listingsAndReviews&database=sample_airbnb&indexName=facets&view=IndexOverview"
+                target="_blank"
+                rel="noreferrer">{designDefinition.searchIndex.name}</a>" Search index for <a
+              href="https://cloud.mongodb.com/v2/618c484956d6980855ec3229#/metrics/replicaSet/63bf37e97b4e7c4baba524c9/explorer/sample_airbnb/listingsAndReviews/find"
               target="_blank"
               rel="noreferrer">{designDefinition.searchIndex.databaseName}.{designDefinition.searchIndex.collectionName}</a> collection.
           </p>
 
-          <p>Such UI might live on the MMS Search Index details page.</p>
+          <p>Functionality could be extended to support:</p>
+          <ul>
+            <li>Autocomplete</li>
+            <li>Additional filter types, e.g. geo, exists, regex, etc.</li>
+            <li>Search terms highlighting</li>
+            <li>and more</li>
+          </ul>
         </Banner>
-
       </Tab>
     </Tabs>
 

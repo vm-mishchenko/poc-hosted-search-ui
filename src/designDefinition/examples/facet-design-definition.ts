@@ -17,7 +17,7 @@ const pipeline: Document[] = [
           },
         },
         "facets": {
-          "accommodatesFacet": {
+          "accommodatesNumberFacet": {
             "type": "number",
             "path": "accommodates",
             "boundaries": [
@@ -27,7 +27,7 @@ const pipeline: Document[] = [
             ],
             "default": "more",
           },
-          "bedTypesFacet": {
+          "bedStringFacet": {
             "type": "string",
             "path": "bed_type",
             "numBuckets": 3,
