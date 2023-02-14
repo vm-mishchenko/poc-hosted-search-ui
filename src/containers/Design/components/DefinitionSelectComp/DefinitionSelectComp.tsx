@@ -21,7 +21,7 @@ export const DefinitionSelectComp = ({ options, onChange, selectedOptionValue }:
   return <div className={styles.wrapper}>
     <SegmentedControl
         name="Try"
-        label="Try"
+        label="Try config"
         darkMode={true}
         value={selectedOptionValue}
         onChange={onChange}
