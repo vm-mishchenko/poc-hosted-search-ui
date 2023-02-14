@@ -348,9 +348,9 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
           <p>Additional functionality we could add:</p>
           <ul>
             <li>Autocomplete</li>
-            <li>Custom search index</li>
+            <li>Support custom Search index</li>
             <li>New filter types (geo, exists, regex, etc.)</li>
-            <li>Suggest filters based on a field type</li>
+            <li>Suggest filter based on a field type</li>
             <li>Highlight search terms</li>
             <li>and more</li>
           </ul>
