@@ -22,6 +22,19 @@ export const hasCompoundOperatorInPipeline = (pipeline: Document[]): boolean => 
   return !!(searchStage[COMPOUND_OPERATOR_NAME]);
 };
 
+export const findStage = (pipeline: Document[], stageName: string): Document[] => {
+  return pipeline.filter((stage) => {
+    const stageKeys = Object.keys(stage);
+
+    if (stageKeys.length !== 1) {
+      // Invalid stage definition. Expected only one key.
+      return false;
+    }
+
+    return stageKeys[0] === stageName;
+  });
+};
+
 // todo-vm: prettify me and add types!
 export const wrapOperatorInCompound = (pipeline: Document[]): Document[] => {
   const hasFacetOperator = hasFacetOperatorInPipeline(pipeline);
@@ -122,6 +135,15 @@ export const appendFilterClauseInCompoundOperator = (pipeline: Document[], facet
   }
 
   return newPipeline;
+};
+
+export const addLimitStage = (pipeline: Document[], limitNumber: number): Document[] => {
+  return [
+    ...pipeline,
+    {
+      $limit: limitNumber,
+    },
+  ];
 };
 
 enum COMPOUND_CLAUSES {
