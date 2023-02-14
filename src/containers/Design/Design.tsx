@@ -345,11 +345,13 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
               rel="noreferrer">{designDefinition.searchIndex.databaseName}.{designDefinition.searchIndex.collectionName}</a> collection.
           </p>
 
-          <p>Functionality could be extended to support:</p>
+          <p>Additional functionality we could add:</p>
           <ul>
             <li>Autocomplete</li>
-            <li>Additional filter types, e.g. geo, exists, regex, etc.</li>
-            <li>Search terms highlighting</li>
+            <li>Custom search index</li>
+            <li>New filter types (geo, exists, regex, etc.)</li>
+            <li>Suggest filters based on a field type</li>
+            <li>Highlight search terms</li>
             <li>and more</li>
           </ul>
         </Banner>
