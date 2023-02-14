@@ -12,7 +12,7 @@ let mongoClient: MongoClient;
 
 export const getMongoClient = async () => {
   if (!mongoClient) {
-    console.log('Mongodb: Establish connection');
+    console.log('Mongodb: connected');
     mongoClient = await MongoClient.connect(MONGODB_CONNECTION_PATH);
   }
 
