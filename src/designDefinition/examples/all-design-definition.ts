@@ -14,9 +14,7 @@ const pipeline: Document[] = [
         "operator": {
           "text": {
             "query": "$$SEARCH_QUERY",
-            "path": {
-              "wildcard": "*",
-            },
+            "path": "name",
           },
         },
         "facets": {

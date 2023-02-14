@@ -12,9 +12,7 @@ const pipeline: Document[] = [
       "index": "facets",
       "text": {
         "query": "$$SEARCH_QUERY",
-        "path": {
-          "wildcard": "*",
-        },
+        "path": "name",
       },
     },
   },
