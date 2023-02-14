@@ -197,6 +197,7 @@ const mapToResponseMeta = (metaMongoDB: MetaMongoDB, selectedFacets: Map<string,
 const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]>, selectedFilters: Map<string, any>, sort: SortRequest | undefined, designDefinition: DesignDefinition): Document[] => {
   // todo-vm: I believe you could do better!
   let finalPipeline: Document[];
+
   if (searchQuery.length) {
     const pipeline = designDefinition.pipeline;
     const pipelineAsString = JSON.stringify(pipeline);
@@ -205,11 +206,7 @@ const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]
     const pipelineWithFacetFilter = addSelectedFacetsAsFilter(pipelineWithQuery, designDefinition, selectedFacets);
     const pipelineWithFacetAndFilters = addSelectedFilter(pipelineWithFacetFilter, designDefinition, selectedFilters);
 
-    if (sort) {
-      finalPipeline = addSortStage(pipelineWithFacetAndFilters, designDefinition, sort);
-    }
-
-    finalPipeline = pipelineWithFacetAndFilters;
+    finalPipeline = sort ? addSortStage(pipelineWithFacetAndFilters, designDefinition, sort) : pipelineWithFacetAndFilters;
   } else {
     // todo-vm: try to use original pipeline when there is no query. Maybe add additional should phase?
     const searchIndexName = getSearchIndexName(designDefinition);
@@ -244,11 +241,8 @@ const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]
 
       const pipelineWithFacetFilter = addSelectedFacetsAsFilter(pipeline, designDefinition, selectedFacets);
       const pipelineWithFacetAndFilters = addSelectedFilter(pipelineWithFacetFilter, designDefinition, selectedFilters);
-      if (sort) {
-        finalPipeline = addSortStage(pipelineWithFacetAndFilters, designDefinition, sort);
-      }
 
-      finalPipeline = pipelineWithFacetAndFilters;
+      finalPipeline = sort ? addSortStage(pipelineWithFacetAndFilters, designDefinition, sort) : pipelineWithFacetAndFilters;
     } else {
       const pipeline = [
         {
@@ -265,11 +259,7 @@ const buildPipeline = (searchQuery: string, selectedFacets: Map<string, string[]
         },
       ];
       const pipelineWithFacetAndFilters = addSelectedFilter(pipeline, designDefinition, selectedFilters);
-      if (sort) {
-        finalPipeline = addSortStage(pipelineWithFacetAndFilters, designDefinition, sort);
-      }
-
-      finalPipeline = pipelineWithFacetAndFilters;
+      finalPipeline = sort ? addSortStage(pipelineWithFacetAndFilters, designDefinition, sort) : pipelineWithFacetAndFilters;
     }
   }
 
