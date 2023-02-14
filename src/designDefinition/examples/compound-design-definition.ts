@@ -32,7 +32,9 @@ const filters: NumberRangeFilter[] = [];
 const sort: string[] = [];
 
 const ui: UIDesignDefinition = {
-  "docFieldNamesToRender": [],
+  "docFieldNamesToRender": [
+    "name",
+  ],
   "docTitleFieldName": "",
   "url": {
     "docFieldName": "",
@@ -40,4 +42,4 @@ const ui: UIDesignDefinition = {
   },
 };
 
-export const compoundDesignDefinition = buildDesignDefinition(pipeline, filters, sort, ui);
+export const COMPOUND_DESIGN_DEFINITION = buildDesignDefinition(pipeline, filters, sort, ui);

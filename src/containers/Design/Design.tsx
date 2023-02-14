@@ -26,6 +26,9 @@ import {
   Tabs,
 } from '@leafygreen-ui/tabs';
 import Code from '@leafygreen-ui/code';
+import { DefinitionSelectComp } from './components/DefinitionSelectComp/DefinitionSelectComp';
+import { BASIC_DESIGN_DEFINITION } from '../../designDefinition/examples/basic-design-definition';
+import { COMPOUND_DESIGN_DEFINITION } from '../../designDefinition/examples/compound-design-definition';
 
 export interface DesignProps {
   designDefinition: DesignDefinition;
@@ -69,6 +72,27 @@ const buildDesignDefinitionInternal = (pipeline: Document[], filters: NumberRang
   );
 };
 
+enum DESIGN_DEFINITION_EXAMPLE {
+  BASIC = 'BASIC',
+  COMPOUND_DESIGN_DEFINITION = 'COMPOUND_DESIGN_DEFINITION'
+}
+
+const DESIGN_DEFINITION_EXAMPLE_MAP = new Map<DESIGN_DEFINITION_EXAMPLE, DesignDefinition>([
+  [DESIGN_DEFINITION_EXAMPLE.BASIC, BASIC_DESIGN_DEFINITION],
+  [DESIGN_DEFINITION_EXAMPLE.COMPOUND_DESIGN_DEFINITION, COMPOUND_DESIGN_DEFINITION],
+]);
+
+const DESIGN_DEFINITION_EXAMPLE_OPTIONS = [
+  {
+    title: 'Basic "text" search',
+    value: DESIGN_DEFINITION_EXAMPLE.BASIC,
+  },
+  {
+    title: 'Compound $search query',
+    value: DESIGN_DEFINITION_EXAMPLE.COMPOUND_DESIGN_DEFINITION,
+  },
+];
+
 /**
  * Create and edit design definition.
  */
@@ -101,6 +125,17 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
     window.open(`share?designDefinition=${encodedDesignDefinition}`, '_blank');
   };
 
+  const definitionSelected = (pValue: string) => {
+    const value = pValue as DESIGN_DEFINITION_EXAMPLE;
+    const designDefinition = DESIGN_DEFINITION_EXAMPLE_MAP.get(value) as DesignDefinition;
+
+    setError('');
+    setPipeline(designDefinition.pipeline);
+    setFilters(designDefinition.filters);
+    setSort(designDefinition.sort);
+    setUI(designDefinition.ui);
+  };
+
   useEffect(() => {
     const newDesignDefinition = buildDesignDefinitionInternal(pipeline, filters, sort, ui);
     const error = validateDesignDefinition(newDesignDefinition);
@@ -125,6 +160,9 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
     <Tabs setSelected={setSelected} selected={selected} darkMode={true}>
       <Tab name="Configuration">
         <br />
+        <DefinitionSelectComp options={DESIGN_DEFINITION_EXAMPLE_OPTIONS} onChange={definitionSelected} />
+        <br />
+
         <ExpandableCard
             title="Search pipeline"
             description="Should return search result documents. Can have any stages."

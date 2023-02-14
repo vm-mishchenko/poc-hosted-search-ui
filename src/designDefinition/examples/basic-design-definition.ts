@@ -28,13 +28,12 @@ const sort: string[] = [];
 const ui: UIDesignDefinition = {
   "docFieldNamesToRender": [
     "name",
-    "description",
   ],
-  "docTitleFieldName": "",
+  "docTitleFieldName": "name",
   "url": {
     "docFieldName": "",
     "template": "",
   },
 };
 
-export const basicDesignDefinition = buildDesignDefinition(pipeline, filters, sort, ui);
+export const BASIC_DESIGN_DEFINITION = buildDesignDefinition(pipeline, filters, sort, ui);

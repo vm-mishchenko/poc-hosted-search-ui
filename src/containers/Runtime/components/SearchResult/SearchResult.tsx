@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   DesignDefinition,
   URL_FIELD_NAME_VARIABLE,
 } from '../../../../designDefinition/types/designDefinition';
 import styles from './SearchResult.module.css';
+import dynamic from 'next/dynamic';
+
+const DynamicReactJson = dynamic(import('react-json-view'), { ssr: false });
 
 const DEFAULT_TITLE_FIELD_NAME = '_id';
 
@@ -71,7 +74,8 @@ const getSearchResultObject = (searchResult: Record<string, any>, designDefiniti
 
   const searchResultObject = fieldNamesToRender.reduce((result: any, fieldName: string) => {
     // fieldName might be nested, e.g. review.accuracy
-    result[fieldName] = resolvePath(searchResult, fieldName, '');
+    const value = resolvePath(searchResult, fieldName, '');
+    result[fieldName] = value;
     return result;
   }, {} as Record<string, any>);
 
@@ -89,16 +93,20 @@ export interface SearchResultProps {
 }
 
 export const SearchResult = ({ searchResult, designDefinition, className }: SearchResultProps) => {
-  const result = getSearchResultObject(searchResult, designDefinition);
+  const result = useMemo(() => {
+    return getSearchResultObject(searchResult, designDefinition);
+  }, [searchResult, designDefinition]);
+
+  const collapsed = Object.keys(result).length === Object.keys(searchResult).length;
 
   return <div className={`${className} ${styles.wrapper}`}>
     {titleUI(searchResult, designDefinition)}
 
-    {Object.keys(result).map((key) => {
-      return <p className={styles.resultLine} key={key}>
-        <span className={styles.keyName}>"{key}":</span>
-        <span className={styles.keyValue}>{result[key]}</span>
-      </p>;
-    })}
+    <DynamicReactJson collapseStringsAfterLength={40}
+                      collapsed={collapsed}
+                      src={result}
+                      displayDataTypes={false}
+                      name={null}
+                      theme="rjv-default" />
   </div>;
 };

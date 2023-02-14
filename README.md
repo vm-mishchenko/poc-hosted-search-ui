@@ -3,11 +3,14 @@
   collection
 - support autocomplete
 - support recent searches
+- filter across search results
 - add filter by category near search box
     - ![img.png](docs/img/search-box-category.png)
 
 ## implement for poc:
+- add clear all filters btn
 - provide some pre-configured pipeline examples
+- add "Try" button for "Search Result URL"
 - explain to which cluster UI is connected now
 - show error properly
     - in design time

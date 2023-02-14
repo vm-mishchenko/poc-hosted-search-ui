@@ -27,7 +27,6 @@ import Icon from '@leafygreen-ui/icon';
 import IconButton from '@leafygreen-ui/icon-button';
 import { Code } from '@leafygreen-ui/code';
 
-
 export interface RuntimeProps {
   designDefinition: DesignDefinition;
 }
@@ -45,6 +44,8 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
   });
   const [requestsInFlight, setRequestsInFlight] = useState(0);
   const [errorResponseMessage, setErrorResponseMessage] = useState('');
+
+  const showSidebar = designDefinition.filters.length > 0 && meta.facets.length > 0;
 
   const onFacetChange = (facetName: string, selectedBucketIds: any[]) => {
     const newSelectedFacets = new Map(selectedFacets);
@@ -68,6 +69,10 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
     }
 
     setSelectedFilters(newSelectedFilers);
+  };
+
+  const switchPipeline = () => {
+    setShowPipeline(!showPipeline);
   };
 
   // Reset selected sort option to default when Design definition does not have such field anymore.
@@ -97,9 +102,6 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
     });
   }, [searchQuery, selectedFacets, selectedFilters, selectedSort, designDefinition]);
 
-  const switchPipeline = () => {
-    setShowPipeline(!showPipeline);
-  };
 
   return (
       <div className={styles.wrapper}>
@@ -136,7 +138,7 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
         </div>}
 
         <div className={styles.contentWrapper}>
-          <div className={styles.sidebar}>
+          {showSidebar && <div className={styles.sidebar}>
             <div>
               {designDefinition.filters.map((filter) => {
                 const filterKey = `${filter.type}-${filter.path}`;
@@ -169,7 +171,7 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
                 }
               })}
             </div>
-          </div>
+          </div>}
 
           <div className={styles.main}>
             <div className={styles.resultsHeader}>
