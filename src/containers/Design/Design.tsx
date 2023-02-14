@@ -28,7 +28,9 @@ import {
 import Code from '@leafygreen-ui/code';
 import { DefinitionSelectComp } from './components/DefinitionSelectComp/DefinitionSelectComp';
 import { BASIC_DESIGN_DEFINITION } from '../../designDefinition/examples/basic-design-definition';
-import { COMPOUND_DESIGN_DEFINITION } from '../../designDefinition/examples/compound-design-definition';
+import { FACET_DESIGN_DEFINITION } from '../../designDefinition/examples/facet-design-definition';
+import { FILTER_AND_SORT_DESIGN_DEFINITION } from '../../designDefinition/examples/filter-and-sort-design-definition';
+import { SEARCH_RESULT_UI_DESIGN_DEFINITION } from '../../designDefinition/examples/searhc-result-ui-design-definition';
 
 export interface DesignProps {
   designDefinition: DesignDefinition;
@@ -74,22 +76,34 @@ const buildDesignDefinitionInternal = (pipeline: Document[], filters: NumberRang
 
 enum DESIGN_DEFINITION_EXAMPLE {
   BASIC = 'BASIC',
-  COMPOUND_DESIGN_DEFINITION = 'COMPOUND_DESIGN_DEFINITION'
+  FACET = 'FACET',
+  FILTER_AND_SORT = 'FILTER_AND_SORT',
+  SEARCH_RESULT_UI = 'SEARCH_RESULT_UI',
 }
 
 const DESIGN_DEFINITION_EXAMPLE_MAP = new Map<DESIGN_DEFINITION_EXAMPLE, DesignDefinition>([
   [DESIGN_DEFINITION_EXAMPLE.BASIC, BASIC_DESIGN_DEFINITION],
-  [DESIGN_DEFINITION_EXAMPLE.COMPOUND_DESIGN_DEFINITION, COMPOUND_DESIGN_DEFINITION],
+  [DESIGN_DEFINITION_EXAMPLE.FACET, FACET_DESIGN_DEFINITION],
+  [DESIGN_DEFINITION_EXAMPLE.FILTER_AND_SORT, FILTER_AND_SORT_DESIGN_DEFINITION],
+  [DESIGN_DEFINITION_EXAMPLE.SEARCH_RESULT_UI, SEARCH_RESULT_UI_DESIGN_DEFINITION],
 ]);
 
 const DESIGN_DEFINITION_EXAMPLE_OPTIONS = [
   {
-    title: 'Basic "text" search',
+    title: 'Basic search',
     value: DESIGN_DEFINITION_EXAMPLE.BASIC,
   },
   {
-    title: 'Compound $search query',
-    value: DESIGN_DEFINITION_EXAMPLE.COMPOUND_DESIGN_DEFINITION,
+    title: 'Facet search',
+    value: DESIGN_DEFINITION_EXAMPLE.FACET,
+  },
+  {
+    title: 'Filter and Sort search',
+    value: DESIGN_DEFINITION_EXAMPLE.FILTER_AND_SORT,
+  },
+  {
+    title: 'Search result URL',
+    value: DESIGN_DEFINITION_EXAMPLE.SEARCH_RESULT_UI,
   },
 ];
 
@@ -102,7 +116,9 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
   const [pipeline, setPipeline] = useState<Document[]>(designDefinition.pipeline);
   const [filters, setFilters] = useState<NumberRangeFilter[]>(designDefinition.filters);
   const [sort, setSort] = useState<Array<string>>(designDefinition.sort);
-  const [selected, setSelected] = useState(0);
+  const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+  const [selectedExamplePipeline, setSelectedExamplePipeline] = useState(DESIGN_DEFINITION_EXAMPLE_OPTIONS[0].value);
+
 
   const onPipelineChange = (newPipelineAsString: string = "{}") => {
     setError('');
@@ -127,8 +143,10 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
 
   const definitionSelected = (pValue: string) => {
     const value = pValue as DESIGN_DEFINITION_EXAMPLE;
-    const designDefinition = DESIGN_DEFINITION_EXAMPLE_MAP.get(value) as DesignDefinition;
 
+    setSelectedExamplePipeline(value);
+
+    const designDefinition = DESIGN_DEFINITION_EXAMPLE_MAP.get(value) as DesignDefinition;
     setError('');
     setPipeline(designDefinition.pipeline);
     setFilters(designDefinition.filters);
@@ -157,10 +175,11 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
     </div>
 
     {/*@ts-ignore*/}
-    <Tabs setSelected={setSelected} selected={selected} darkMode={true}>
+    <Tabs setSelected={setSelectedTabIndex} selected={selectedTabIndex} darkMode={true}>
       <Tab name="Configuration">
         <br />
-        <DefinitionSelectComp options={DESIGN_DEFINITION_EXAMPLE_OPTIONS} onChange={definitionSelected} />
+        <DefinitionSelectComp options={DESIGN_DEFINITION_EXAMPLE_OPTIONS} onChange={definitionSelected}
+                              selectedOptionValue={selectedExamplePipeline} />
         <br />
 
         <ExpandableCard

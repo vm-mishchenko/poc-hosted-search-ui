@@ -46,7 +46,7 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
   const [requestsInFlight, setRequestsInFlight] = useState(0);
   const [errorResponseMessage, setErrorResponseMessage] = useState('');
 
-  const showSidebar = designDefinition.filters.length > 0 && meta.facets.length > 0;
+  const showSidebar = designDefinition.filters.length > 0 || meta.facets.length > 0;
 
   const onFacetChange = (facetName: string, selectedBucketIds: any[]) => {
     const newSelectedFacets = new Map(selectedFacets);

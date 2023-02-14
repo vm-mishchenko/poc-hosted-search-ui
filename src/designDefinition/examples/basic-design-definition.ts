@@ -27,7 +27,12 @@ const sort: string[] = [];
 
 const ui: UIDesignDefinition = {
   "docFieldNamesToRender": [
+    "_id",
     "name",
+    "beds",
+    "bedrooms",
+    "accommodates",
+    "bed_type",
   ],
   "docTitleFieldName": "name",
   "url": {

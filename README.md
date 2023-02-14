@@ -8,17 +8,7 @@
     - ![img.png](docs/img/search-box-category.png)
 
 ## implement for poc:
-- provide some pre-configured pipeline examples
-- add "Try" button for "Search Result URL"
 - explain to which cluster UI is connected now
-- show error properly
-    - in design time
-    - in runtime
-- search pipeline
-    - add button to quickly transform search query to:
-        - compound
-        - facet
-    - add button to add string/number facet query
 - show document example in Design tab
     - sampled value
 

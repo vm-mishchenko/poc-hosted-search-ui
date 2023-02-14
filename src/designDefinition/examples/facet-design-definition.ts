@@ -1,9 +1,9 @@
+import { buildDesignDefinition } from '../utils';
 import {
   NumberRangeFilter,
   UIDesignDefinition,
 } from '../types/designDefinition';
 import { Document } from 'mongodb';
-import { buildDesignDefinition } from '../utils';
 
 const pipeline: Document[] = [
   {
@@ -11,17 +11,11 @@ const pipeline: Document[] = [
       "index": "facets",
       "facet": {
         "operator": {
-          "compound": {
-            "must": [
-              {
-                "text": {
-                  "query": "$$SEARCH_QUERY",
-                  "path": {
-                    "wildcard": "*",
-                  },
-                },
-              },
-            ],
+          "text": {
+            "query": "$$SEARCH_QUERY",
+            "path": {
+              "wildcard": "*",
+            },
           },
         },
         "facets": {
@@ -55,15 +49,18 @@ const sort: string[] = [];
 
 const ui: UIDesignDefinition = {
   "docFieldNamesToRender": [
+    "_id",
     "name",
-    "bed_type",
+    "beds",
+    "bedrooms",
     "accommodates",
+    "bed_type",
   ],
-  "docTitleFieldName": "",
+  "docTitleFieldName": "name",
   "url": {
     "docFieldName": "",
     "template": "",
   },
 };
 
-export const facetsDesignDefinition = buildDesignDefinition(pipeline, filters, sort, ui);
+export const FACET_DESIGN_DEFINITION = buildDesignDefinition(pipeline, filters, sort, ui);
