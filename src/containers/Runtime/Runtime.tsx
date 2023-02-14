@@ -72,6 +72,12 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
     setSelectedFilters(newSelectedFilers);
   };
 
+  const onSearchQueryChange = (newSearchQuery: string) => {
+    setSearchQuery(newSearchQuery);
+    setSelectedFacets(new Map());
+    setSelectedFilters(new Map());
+  };
+
   const switchPipeline = () => {
     setShowPipeline(!showPipeline);
   };
@@ -88,7 +94,6 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
     setRequestsInFlight((currentFlights) => {
       return currentFlights + 1;
     });
-    // todo-vm: clear selected facets when searchQuery was changed
     setErrorResponseMessage('');
     search(searchQuery, selectedFacets, selectedFilters, selectedSort, designDefinition).then((searchResponse) => {
       setSearchResults(searchResponse.docs);
@@ -111,7 +116,7 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
               placeholder={'Search'}
               sizeVariant="large"
               onChange={(event) => {
-                setSearchQuery(event.target.value);
+                onSearchQueryChange(event.target.value);
               }}
               type="search"
               value={searchQuery}
