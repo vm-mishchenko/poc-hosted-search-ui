@@ -10,31 +10,10 @@ const pipeline: Document[] = [
   {
     "$search": {
       "index": "facets",
-      "facet": {
-        "operator": {
-          "text": {
-            "query": "$$SEARCH_QUERY",
-            "path": {
-              "wildcard": "*",
-            },
-          },
-        },
-        "facets": {
-          "accommodatesFacet": {
-            "type": "number",
-            "path": "accommodates",
-            "boundaries": [
-              1,
-              3,
-              5,
-            ],
-            "default": "more",
-          },
-          "bedTypesFacet": {
-            "type": "string",
-            "path": "bed_type",
-            "numBuckets": 3,
-          },
+      "text": {
+        "query": "$$SEARCH_QUERY",
+        "path": {
+          "wildcard": "*",
         },
       },
     },

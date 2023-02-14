@@ -75,4 +75,4 @@ const ui: UIDesignDefinition = {
   },
 };
 
-export const SEARCH_RESULT_UI_DESIGN_DEFINITION = buildDesignDefinition(pipeline, filters, sort, ui);
+export const ALL_DESIGN_DEFINITION = buildDesignDefinition(pipeline, filters, sort, ui);

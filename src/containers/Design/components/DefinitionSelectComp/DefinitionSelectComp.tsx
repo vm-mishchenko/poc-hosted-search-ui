@@ -1,9 +1,9 @@
-import {
-  Option,
-  Select,
-} from '@leafygreen-ui/select';
 import styles from './DefinitionSelectComp.module.css';
 import React from 'react';
+import {
+  SegmentedControl,
+  SegmentedControlOption,
+} from '@leafygreen-ui/segmented-control';
 
 
 export interface DefinitionSelectCompProps {
@@ -19,21 +19,16 @@ export interface DefinitionSelectOption {
 
 export const DefinitionSelectComp = ({ options, onChange, selectedOptionValue }: DefinitionSelectCompProps) => {
   return <div className={styles.wrapper}>
-    <label id="design-try-definition" className={styles.label}>
-      Try sample configurations:
-    </label>
-    <Select
-        label=""
-        aria-labelledby="design-try-definition"
-        className={styles.select}
-        allowDeselect={false}
+    <SegmentedControl
+        name="Try"
+        label="Try"
         darkMode={true}
-        onChange={onChange}
         value={selectedOptionValue}
+        onChange={onChange}
     >
       {options.map((option) => {
-        return <Option key={option.title} value={option.value}>{option.title}</Option>;
+        return <SegmentedControlOption key={option.title} value={option.value}>{option.title}</SegmentedControlOption>;
       })}
-    </Select>
+    </SegmentedControl>;
   </div>;
 };

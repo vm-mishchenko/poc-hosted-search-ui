@@ -30,7 +30,8 @@ import { DefinitionSelectComp } from './components/DefinitionSelectComp/Definiti
 import { BASIC_DESIGN_DEFINITION } from '../../designDefinition/examples/basic-design-definition';
 import { FACET_DESIGN_DEFINITION } from '../../designDefinition/examples/facet-design-definition';
 import { FILTER_AND_SORT_DESIGN_DEFINITION } from '../../designDefinition/examples/filter-and-sort-design-definition';
-import { SEARCH_RESULT_UI_DESIGN_DEFINITION } from '../../designDefinition/examples/searhc-result-ui-design-definition';
+import { SEARCH_RESULT_UI_DESIGN_DEFINITION } from '../../designDefinition/examples/search-result-ui-design-definition';
+import { ALL_DESIGN_DEFINITION } from '../../designDefinition/examples/all-design-definition';
 
 export interface DesignProps {
   designDefinition: DesignDefinition;
@@ -79,6 +80,7 @@ enum DESIGN_DEFINITION_EXAMPLE {
   FACET = 'FACET',
   FILTER_AND_SORT = 'FILTER_AND_SORT',
   SEARCH_RESULT_UI = 'SEARCH_RESULT_UI',
+  ALL = 'ALL',
 }
 
 const DESIGN_DEFINITION_EXAMPLE_MAP = new Map<DESIGN_DEFINITION_EXAMPLE, DesignDefinition>([
@@ -86,24 +88,29 @@ const DESIGN_DEFINITION_EXAMPLE_MAP = new Map<DESIGN_DEFINITION_EXAMPLE, DesignD
   [DESIGN_DEFINITION_EXAMPLE.FACET, FACET_DESIGN_DEFINITION],
   [DESIGN_DEFINITION_EXAMPLE.FILTER_AND_SORT, FILTER_AND_SORT_DESIGN_DEFINITION],
   [DESIGN_DEFINITION_EXAMPLE.SEARCH_RESULT_UI, SEARCH_RESULT_UI_DESIGN_DEFINITION],
+  [DESIGN_DEFINITION_EXAMPLE.ALL, ALL_DESIGN_DEFINITION],
 ]);
 
 const DESIGN_DEFINITION_EXAMPLE_OPTIONS = [
   {
-    title: 'Basic search',
+    title: 'Basic',
     value: DESIGN_DEFINITION_EXAMPLE.BASIC,
   },
   {
-    title: 'Facet search',
-    value: DESIGN_DEFINITION_EXAMPLE.FACET,
+    title: 'URL',
+    value: DESIGN_DEFINITION_EXAMPLE.SEARCH_RESULT_UI,
   },
   {
-    title: 'Filter and Sort search',
+    title: 'Filter/Sort',
     value: DESIGN_DEFINITION_EXAMPLE.FILTER_AND_SORT,
   },
   {
-    title: 'Search result URL',
-    value: DESIGN_DEFINITION_EXAMPLE.SEARCH_RESULT_UI,
+    title: 'Facets',
+    value: DESIGN_DEFINITION_EXAMPLE.FACET,
+  },
+  {
+    title: 'All',
+    value: DESIGN_DEFINITION_EXAMPLE.ALL,
   },
 ];
 
@@ -118,7 +125,6 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
   const [sort, setSort] = useState<Array<string>>(designDefinition.sort);
   const [selectedTabIndex, setSelectedTabIndex] = useState(0);
   const [selectedExamplePipeline, setSelectedExamplePipeline] = useState(DESIGN_DEFINITION_EXAMPLE_OPTIONS[0].value);
-
 
   const onPipelineChange = (newPipelineAsString: string = "{}") => {
     setError('');
@@ -170,7 +176,7 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
     <div className={styles.header}>
       <h2 className={styles.title}>Design search interface</h2>
       <Button variant={'primary'} darkMode={true} onClick={openRuntime} disabled={error.length > 0}>
-        Open Search
+        Open Search UI
       </Button>
     </div>
 
@@ -184,7 +190,7 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
 
         <ExpandableCard
             title="Search pipeline"
-            description="Should return search result documents. Can have any stages."
+            description="Configure aggregation pipeline that will return search results"
             className={styles.card}
             darkMode={true}
         >
@@ -220,7 +226,7 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
         >
           <TextInput
               label="Sort fields"
-              description="List of document fields to sort on"
+              description="List of field names"
               placeholder="name1, name2, ..."
               onChange={event => {
                 setSort(event.target.value ? event.target.value.split(', ') : []);
@@ -232,13 +238,13 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
 
         <ExpandableCard
             title="Search Result Fields"
-            description="Configure how search results will be rendered"
+            description="Configure document fields to render"
             className={styles.card}
             darkMode={true}
         >
           <TextInput
-              label="Title field name"
-              description="Document field name that will serve as Search result title"
+              label="Title"
+              description="Field name that will serve as Search result title"
               placeholder="Document field name"
               onChange={event => {
                 setUI({
@@ -252,7 +258,7 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
           />
           <TextInput
               label="Fields to render"
-              description="List of documents field to render"
+              description="List of field names to render"
               placeholder="name1, name2, ..."
               autoComplete={'off'}
               onChange={event => {
@@ -268,12 +274,12 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
 
         <ExpandableCard
             title="Search Result URL"
-            description="Configure how search results will be rendered"
+            description="Configure Search result URL"
             className={styles.card}
             darkMode={true}
         >
           <Banner className={styles.searchPipelineTitle}>
-            <Badge variant="lightgray">$$URL_FIELD_NAME</Badge> variable represents document field value, e.g.
+            <Badge variant="lightgray">$$URL_FIELD_NAME</Badge> variable represents document field value.
 
             <p>https://www.google.com/search?q=$$URL_FIELD_NAME</p>
           </Banner>
@@ -322,7 +328,23 @@ export const Design = ({ onChange, designDefinition }: DesignProps) => {
         </Code>
       </Tab>
       <Tab name="About">
-        Hi there!
+        <br />
+        <Banner>
+          App automatically builds Search UI based on provided aggregation pipeline and some additional metadata.
+
+          <p>
+            App assumes that Search index with the name "<strong>{designDefinition.searchIndex.name}</strong>" was
+            already
+            created
+            for <a
+              href="https://cloud.mongodb.com/v2/618c484956d6980855ec3229#/clusters/atlasSearch/vitalii-hosted-ui?collectionName=listingsAndReviews&database=sample_airbnb&indexName=facets&view=IndexOverview"
+              target="_blank"
+              rel="noreferrer">{designDefinition.searchIndex.databaseName}.{designDefinition.searchIndex.collectionName}</a> collection.
+          </p>
+
+          <p>Such UI might live on the MMS Search Index details page.</p>
+        </Banner>
+
       </Tab>
     </Tabs>
 

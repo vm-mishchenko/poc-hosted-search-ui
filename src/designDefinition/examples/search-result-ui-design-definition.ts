@@ -37,9 +37,9 @@ const ui: UIDesignDefinition = {
   ],
   "docTitleFieldName": "name",
   "url": {
-    "docFieldName": "",
-    "template": "",
+    "template": "https://www.google.com/search?q=$$URL_FIELD_NAME",
+    "docFieldName": "name",
   },
 };
 
-export const BASIC_DESIGN_DEFINITION = buildDesignDefinition(pipeline, filters, sort, ui);
+export const SEARCH_RESULT_UI_DESIGN_DEFINITION = buildDesignDefinition(pipeline, filters, sort, ui);

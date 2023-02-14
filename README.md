@@ -6,11 +6,11 @@
 - filter across search results
 - add filter by category near search box
     - ![img.png](docs/img/search-box-category.png)
-
-## implement for poc:
-- explain to which cluster UI is connected now
 - show document example in Design tab
     - sampled value
+
+## implement for poc:
+- none
 
 ## limitations:
 - does not support `$searchMeta` stage
