@@ -26,6 +26,7 @@ import { LoadingDotComp } from './components/LoadingDotComp/LoadingDotComp';
 import Icon from '@leafygreen-ui/icon';
 import IconButton from '@leafygreen-ui/icon-button';
 import { Code } from '@leafygreen-ui/code';
+import Banner from '@leafygreen-ui/banner';
 
 export interface RuntimeProps {
   designDefinition: DesignDefinition;
@@ -101,7 +102,6 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
       });
     });
   }, [searchQuery, selectedFacets, selectedFilters, selectedSort, designDefinition]);
-
 
   return (
       <div className={styles.wrapper}>
@@ -181,9 +181,7 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
               </div>
             </div>
 
-            {errorResponseMessage && <p>
-              Error: {errorResponseMessage}
-            </p>}
+            {errorResponseMessage && <Banner variant="danger">{errorResponseMessage}</Banner>}
 
             {!searchResults.length && requestsInFlight > 0 ? 'Loading...' : ''}
 
@@ -191,16 +189,6 @@ export const Runtime = ({ designDefinition }: RuntimeProps) => {
                 <SearchResultsComp searchResults={searchResults} designDefinition={designDefinition} />}
           </div>
         </div>
-
-        {/*<h3>Meta</h3>*/}
-        {/*<pre>*/}
-        {/*  {JSON.stringify(meta, null, 2)}*/}
-        {/*</pre>*/}
-
-        {/*<h3>Actual pipeline</h3>*/}
-        {/*<pre>*/}
-        {/*  {JSON.stringify(actualPipeline, null, 2)}*/}
-        {/*</pre>*/}
       </div>
   );
 };

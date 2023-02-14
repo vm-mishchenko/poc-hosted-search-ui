@@ -120,19 +120,23 @@ export default async function handler (
   const databaseName = designDefinition.searchIndex.databaseName;
   const collectionName = designDefinition.searchIndex.collectionName;
 
-  const {
-    docs,
-    pipeline,
-  } = await queryDocuments(searchQuery, selectedFacets, selectedFilters, sort, designDefinition, databaseName, collectionName);
-  const meta = await queryMeta(searchQuery, selectedFacets, selectedFilters, sort, designDefinition, databaseName, collectionName);
+  try {
+    const {
+      docs,
+      pipeline,
+    } = await queryDocuments(searchQuery, selectedFacets, selectedFilters, sort, designDefinition, databaseName, collectionName);
+    const meta = await queryMeta(searchQuery, selectedFacets, selectedFilters, sort, designDefinition, databaseName, collectionName);
 
-  const response: SearchResponse = {
-    docs,
-    meta,
-    pipeline,
-  };
+    const response: SearchResponse = {
+      docs,
+      meta,
+      pipeline,
+    };
 
-  res.status(200).json(response);
+    res.status(200).json(response);
+  } catch (error: any) {
+    res.status(400).json({ errorMessage: error.message } as any);
+  }
 }
 
 const queryDocuments = async (searchQuery: string, selectedFacets: Map<string, string[]>, selectedFilters: Map<string, any>, sort: SortRequest | undefined, designDefinition: DesignDefinition, databaseName: string, collectionName: string): Promise<{
