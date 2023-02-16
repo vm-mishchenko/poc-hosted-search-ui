@@ -146,6 +146,15 @@ export const addLimitStage = (pipeline: Document[], limitNumber: number): Docume
   ];
 };
 
+export const addTracking = (pipeline: Document[], searchTerm: string): Document[] => {
+  const searchStage = getSearchStageFromPipeline(pipeline);
+  searchStage.tracking = {
+    searchTerms: searchTerm,
+  };
+
+  return pipeline;
+};
+
 enum COMPOUND_CLAUSES {
   filter = 'filter'
 }

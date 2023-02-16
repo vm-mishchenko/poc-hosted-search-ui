@@ -26,6 +26,9 @@ export interface SearchStage {
   highlight?: any;
   count?: any;
   returnStoredSource?: any;
+  tracking?: {
+    searchTerms: string
+  };
 }
 
 export interface Facet {

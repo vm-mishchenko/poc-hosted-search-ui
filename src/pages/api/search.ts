@@ -24,6 +24,7 @@ import {
 } from '../../database/types';
 import {
   addLimitStage,
+  addTracking,
   appendFilterClauseInCompoundOperator,
   COMPOUND_OPERATOR_NAME,
   findStage,
@@ -145,7 +146,8 @@ const queryDocuments = async (searchQuery: string, selectedFacets: Map<string, s
   docs: Record<string, any>[],
   pipeline: Document[],
 }> => {
-  const pipeline = buildPipeline(searchQuery, selectedFacets, selectedFilters, sort, designDefinition);
+  let pipeline = buildPipeline(searchQuery, selectedFacets, selectedFilters, sort, designDefinition);
+  pipeline = addTracking(pipeline, searchQuery);
   const docs = await runPipelineNew(databaseName, collectionName, pipeline);
   return {
     docs,
